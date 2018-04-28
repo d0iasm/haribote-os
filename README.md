@@ -1,4 +1,4 @@
-# haribote-os-cpp
+# haribote-os
 A haribote OS.
 
 
