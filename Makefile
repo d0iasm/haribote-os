@@ -11,6 +11,9 @@ BOOTPACK = bootpack
 default:
 	make run
 
+hankaku.o: hankaku.c
+	gcc -c -m32 -o hankaku.o hankaku.c
+
 ipl.bin: $(IPL).asm Makefile
 	nasm $(IPL).asm -o $(IPL).bin
 
@@ -26,8 +29,8 @@ nasmfunc.o: $(FUNC).asm
 bootpack.o: $(BOOTPACK).c
 	gcc -c -m32 -fno-pic -o $(BOOTPACK).o $(BOOTPACK).c
 
-bootpack.bin: $(BOOTPACK).o $(FUNC).o
-	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o $(FUNC).o
+bootpack.bin: $(BOOTPACK).o $(FUNC).o hankaku.o
+	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o hankaku.o $(FUNC).o
 
 os.sys: $(HEADER).bin $(BOOTPACK).bin
 	cat $(HEADER).bin $(BOOTPACK).bin > os.sys

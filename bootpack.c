@@ -37,16 +37,18 @@ struct BOOTINFO {
 };
 
 void hari_main(void) {
-  struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0; 
+  struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
+  extern char hankaku[4096];
 
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
-  static char font_A[16] = {
-    0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
-    0x24, 0x7e, 0x42, 0x42, 0x42, 0xe7, 0x00, 0x00
-  };
-  putfont8(binfo->vram, binfo->scrnx, 10, 10, COL8_FFFFFF, font_A);
+  putfont8(binfo->vram, binfo->scrnx, 10, 10, COL8_FFFFFF, hankaku + 'A' * 16);
+  putfont8(binfo->vram, binfo->scrnx, 20, 10, COL8_FFFFFF, hankaku + 'B' * 16);
+  putfont8(binfo->vram, binfo->scrnx, 30, 10, COL8_FFFFFF, hankaku + 'C' * 16);
+  putfont8(binfo->vram, binfo->scrnx, 50, 10, COL8_FFFFFF, hankaku + '1' * 16);
+  putfont8(binfo->vram, binfo->scrnx, 60, 10, COL8_FFFFFF, hankaku + '2' * 16);
+  putfont8(binfo->vram, binfo->scrnx, 70, 10, COL8_FFFFFF, hankaku + '3' * 16);
 
   for(;;) {
     io_hlt();
