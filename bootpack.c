@@ -31,16 +31,16 @@ void init_palette(void) {
     0x00, 0x00, 0x00, // #000000: Black
     0xff, 0x00, 0x00, // #ff0000: Red
     0x00, 0xff, 0x00, // #00ff00: Green
-    0x00, 0x00, 0xff, // #0000ff: Blue
     0xff, 0xff, 0x00, // #ffff00: Yellow
+    0x00, 0x00, 0xff, // #0000ff: Blue
     0xff, 0x00, 0xff, // #ff00ff: Purple
     0x00, 0xff, 0xff, // #00ffff: Light blue
     0xff, 0xff, 0xff, // #ffffff: White
     0xc6, 0xc6, 0xc6, // #c6c6c6: Gray
     0x84, 0x00, 0x00, // #840000: Dark red
     0x00, 0x84, 0x00, // #008400: Dark green
-    0x00, 0x00, 0x84, // #000084: Dark blue
     0x84, 0x84, 0x00, // #848400: Dark yellow
+    0x00, 0x00, 0x84, // #000084: Dark blue
     0x84, 0x00, 0x84, // #840084: Dark purple
     0x00, 0x84, 0x84, // #008484: Dark light blue
     0x84, 0x84, 0x84, // #848484: Dark gray
@@ -59,7 +59,7 @@ void set_palette(int start, int end, unsigned char *rgb) {
     io_out8(0x3c9, rgb[2] / 4);
     rgb += 3;
   }
-  io_store_eflags(eflags); // STI: To revert interrupt flag to its original value
+  io_store_eflags(eflags); // To revert interrupt flag to its original value
   return;
 }
 
