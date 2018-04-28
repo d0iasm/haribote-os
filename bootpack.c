@@ -28,20 +28,19 @@ void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 void init_screen(unsigned char *vram, int xsize, int ysize);
 
-void hari_main(void) {
-  init_palette();
 
-  // VRAM: 0xa0000 ~ 0xaffff
-  // VRAM has 320*200 = 64,000 pixels
-  // The upper left coordinate is (0, 0), and the lower right is (319, 199)
-  short *binfo_scrnx = (short *) 0x0ff4;
-  short *binfo_scrny = (short *) 0x0ff6;
-  int *binfo_vram = (int *) 0x0ff8; 
-  int xsize = *binfo_scrnx;
-  int ysize = *binfo_scrny;
-  char *vram = (char *) *binfo_vram; // Byte address of start value of VRAM
+// This struct size is 12 bytes
+struct BOOTINFO {
+  char cyls, leds, vmode, reserve; // 1 byte * 4 = 4 bytes
+  short scrnx, scrny; // 2 bytes * 2 = 4 bytes
+  char *vram; // 1 byte
+};
+
+void hari_main(void) {
+  struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0; 
   
-  init_screen(vram, xsize, ysize);
+  init_palette();
+  init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
   
   for(;;) {
     io_hlt();
