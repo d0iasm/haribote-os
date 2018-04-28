@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Binary files
+*.bin
+*.lst
+*.img
+*.o
+*.sys
+
