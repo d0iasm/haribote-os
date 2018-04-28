@@ -1,7 +1,7 @@
   ; nasmfunc.asm
 
   bits 32
-  bal io_hlt
+  global io_hlt
   global write_mem8
 
   section .text
