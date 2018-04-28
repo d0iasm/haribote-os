@@ -51,7 +51,6 @@ clean:
 	rm -f *.img
 	rm -f *.o
 	rm -f *.sys
-	rm -f *.ls
 
 debug: 
 	qemu-system-i386 -m 32 -localtime -vga std -fda os.img -gdb tcp::10000 -S &
