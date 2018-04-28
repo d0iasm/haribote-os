@@ -38,11 +38,11 @@ os.sys: $(HEADER).bin $(BOOTPACK).bin
 # 	-C: Creates the disk image file to install the MS-DOS filesystem on it.
 #	-B: Use the bootsector stored in the given file or device, instead of using its own.	
 # mcopy: Copy MSDOS files to/from Unix.
-os.img: $(IPL).bin os.sys
+os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B $(IPL).bin -i os.img ::
 	mcopy -i os.img os.sys ::
 
-run:
+run: os.img
 	qemu-system-i386 -fda os.img
 
 clean:
