@@ -49,7 +49,7 @@
   CALL waitkbdout
 
   ; Protect mode
-  [INSTRSET "i486p"] ; To use 486 instruction set
+  ; [INSTRSET "i486p"] ; To use 486 instruction set
 
   LGDT [GDTR0]
   MOV EAX, CR0

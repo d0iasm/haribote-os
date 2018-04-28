@@ -2,7 +2,8 @@
 
 # Variables
 IPL = ipl10
-HEADER = haribote
+HEADER = asmhead
+CORE = haribote
 
 # Commands
 default:
@@ -11,8 +12,11 @@ default:
 ipl.bin: $(IPL).asm Makefile
 	nasm $(IPL).asm -o $(IPL).bin -l $(IPL).lst
 
-haribote.sys: $(HEADER).asm Makefile
-	nasm $(HEADER).asm -o $(HEADER).sys -l $(HEADER).lst
+asmhead.bin: $(HEADER).asm Makefile
+	nasm $(HEADER).asm -o $(HEADER).bin -l $(HEADER).lst
+
+haribote.sys: $(CORE).asm Makefile
+	nasm $(CORE).asm -o $(CORE).sys -l $(CORE).lst
 
 
 # mformat: Add an MSDOS file system to a low-level formatted floppy disk.
@@ -22,26 +26,26 @@ haribote.sys: $(HEADER).asm Makefile
 #	-B: Use the bootsector stored in the given file or device, instead of using its own.
 #	
 # mcopy: 
-haribote.img: $(IPL).bin $(HEADER).sys Makefile
-	mformat -f 1440 -C -B $(IPL).bin -i $(HEADER).img ::
-	mcopy $(HEADER).sys -i $(HEADER).img ::
+haribote.img: $(IPL).bin $(CORE).sys Makefile
+	mformat -f 1440 -C -B $(IPL).bin -i $(CORE).img ::
+	mcopy $(CORE).sys -i $(CORE).img ::
 
 asm:
 	make -r ipl.bin
 
 img:
-	make -r $(HEADER).sys
-	make -r $(HEADER).img
+	make -r $(CORE).sys
+	make -r $(CORE).img
 
 run:
 	make asm
 	make img
-	qemu-system-i386 -fda $(HEADER).img
+	qemu-system-i386 -fda $(CORE).img
 
 clean:
-	rm *.bin
-	rm *.lst
-	rm *.img
-	rm *.o
-	rm *.sys
+	rm -f *.bin
+	rm -f *.lst
+	rm -f *.img
+	rm -f *.o
+	rm -f *.sys
 
