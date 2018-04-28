@@ -55,7 +55,7 @@
   MOV EAX, CR0
   AND EAX, 0x7fffffff ; Set bit31 to 0 not to allow paging
   OR EAX, 0x00000001 ; Set bit0 to 1 to move protect mode
-  MOV CE0, EAX
+  MOV CR0, EAX
   JMP pipelineflush
 
 pipelineflush:
@@ -99,6 +99,10 @@ pipelineflush:
   MOV EDI, [EBX+12] ; Destination
   CALL memcpy
 
+skip:
+  MOV ESP, [EBX+12] ; Initial value of stack
+  JMP DWORD 2*8:0x0000001b
+
 waitkbdout:
   IN AL, 0x64
   AND AL, 0x02
@@ -106,7 +110,7 @@ waitkbdout:
   RET
 
 memcpy:
-  IN EAX, [ESI]
+  MOV EAX, [ESI]
   ADD ESI, 4
   MOV [EDI], EAX
   ADD EDI, 4
