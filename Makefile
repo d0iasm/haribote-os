@@ -54,4 +54,9 @@ clean:
 	rm -f *.sys
 
 debug: 
-	qemu-system-i386 -m 32 -localtime -vga std -fda os.img -gdb tcp::10000 -S &
+	qemu-system-i386 \
+	  -m 32 \
+	  -rtc base=localtime \
+	  -vga std \
+	  -fda os.img \
+	  -gdb tcp::10000 -S &
