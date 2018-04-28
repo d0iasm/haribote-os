@@ -13,3 +13,8 @@ QEMU emulator version 2.12.0
 $ gcc --version
 gcc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609
 ```
+
+## References
+- BIOS settings: http://oswiki.osask.jp/?(AT)BIOS
+- Memory maps: http://oswiki.osask.jp/?(AT)memorymap
+- VGA hardware: https://wiki.osdev.org/VGA_Hardware

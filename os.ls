@@ -15,7 +15,7 @@ SECTIONS {
 		LONG(SIZEOF(.data)) /* 16 : size of .data */
 		LONG(LOADADDR(.data)) /* 20 : size of .data */
 		LONG(0xE9000000) /* 24 : E9000000 */
-		LONG(HariMain - 0x20) /* 28 : entry - 0x20 */
+		LONG(hari_main - 0x20) /* 28 : entry - 0x20 */
 		LONG(0x01) /* 32 : heap領域開始アドレス */
 	}
 

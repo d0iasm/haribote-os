@@ -27,7 +27,7 @@ bootpack.o: $(BOOTPACK).c
 	gcc -c -m32 -fno-pic -o $(BOOTPACK).o $(BOOTPACK).c
 
 bootpack.bin: $(BOOTPACK).o $(FUNC).o
-	ld -m elf_i386 -e HariMain -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o $(FUNC).o
+	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o $(FUNC).o
 
 os.sys: $(HEADER).bin $(BOOTPACK).bin
 	cat $(HEADER).bin $(BOOTPACK).bin > os.sys
@@ -38,6 +38,7 @@ os.sys: $(HEADER).bin $(BOOTPACK).bin
 # 	-C: Creates the disk image file to install the MS-DOS filesystem on it.
 #	-B: Use the bootsector stored in the given file or device, instead of using its own.	
 # mcopy: Copy MSDOS files to/from Unix.
+# :: To overwrite if a os.sys file exists already 
 os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B $(IPL).bin -i os.img ::
 	mcopy -i os.img os.sys ::
