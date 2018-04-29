@@ -1,5 +1,6 @@
 # haribote-os
-A haribote OS.
+A haribote OS. Just run it by `$ make run`.
+
 
 ## Debug
 
