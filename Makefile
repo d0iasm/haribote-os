@@ -5,11 +5,13 @@ IPL = ipl10
 HEADER = asmhead
 FUNC = nasmfunc
 BOOTPACK = bootpack
-# CORE = haribote
 
 # Commands
 default:
 	make run
+
+tsprintf.o: tsprintf.c
+	gcc -c -m32 -fno-stack-protector -o tsprintf.o tsprintf.c
 
 hankaku.o: hankaku.c
 	gcc -c -m32 -o hankaku.o hankaku.c
@@ -29,8 +31,8 @@ nasmfunc.o: $(FUNC).asm
 bootpack.o: $(BOOTPACK).c
 	gcc -c -m32 -fno-pic -o $(BOOTPACK).o $(BOOTPACK).c
 
-bootpack.bin: $(BOOTPACK).o $(FUNC).o hankaku.o
-	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o hankaku.o $(FUNC).o
+bootpack.bin: $(BOOTPACK).o $(FUNC).o hankaku.o tsprintf.o
+	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o hankaku.o tsprintf.o $(FUNC).o
 
 os.sys: $(HEADER).bin $(BOOTPACK).bin
 	cat $(HEADER).bin $(BOOTPACK).bin > os.sys

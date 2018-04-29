@@ -32,6 +32,7 @@ void init_screen(char *vram, int xsize, int ysize);
 void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s);
 
+int tsprintf(char *str, const char *fmt, ...);
 
 // This struct size is 12 bytes
 struct BOOTINFO {
@@ -58,7 +59,7 @@ void hari_main(void) {
   putfonts8_asc(binfo->vram, binfo->scrnx, 30, 30, COL8_FFFFFF, "Haribote OS.");
 
   char s[40];
-  sprintf(s, "scrnx = %d", binfo->scrnx);
+  tsprintf(s, "scrnx = %d", binfo->scrnx);
   putfonts8_asc(binfo->vram, binfo->scrnx, 10, 60, COL8_FFFFFF, s);
   
   for(;;) {
