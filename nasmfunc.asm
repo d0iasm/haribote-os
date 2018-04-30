@@ -84,7 +84,7 @@ io_store_eflags: ; void io_store_eflags(int eflags);
 load_gdtr: ; void load_gdtr(int limit, int addr);
   MOV AX, [ESP+4] ; limit
   MOV [ESP+6], AX
-  LGDT [ESP+6]
+  LGDT [ESP+6] ; Set limit and number to GDTR register
   RET
 
 load_idtr: ; void load_idtr(int limit, int addr);
