@@ -7,6 +7,9 @@ void hari_main(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
   extern char hankaku[4096];
 
+  init_gdtidt();
+  init_pic();
+
   init_palette();
   init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
