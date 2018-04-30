@@ -13,6 +13,8 @@
   global io_out32
   global io_load_eflags
   global io_store_eflags
+  global load_gdtr
+  global load_idtr
 
   section .text
 
@@ -78,4 +80,16 @@ io_store_eflags: ; void io_store_eflags(int eflags);
   PUSH EAX
   POPFD ; Pop flags double-word
   RET ; Return EAX value when RET is called
+
+load_gdtr: ; void load_gdtr(int limit, int addr);
+  MOV AX, [ESP+4] ; limit
+  MOV [ESP+6], AX
+  LGDT [ESP+6]
+  RET
+
+load_idtr: ; void load_idtr(int limit, int addr);
+  MOV AX, [ESP+4] ; limit
+  MOV [ESP+6], AX
+  LIDT [ESP+6]
+  RET
 
