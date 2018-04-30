@@ -1,41 +1,36 @@
 # The makefile of haribote OS
 
-# Variables
-IPL = ipl10
-HEADER = asmhead
-FUNC = nasmfunc
-BOOTPACK = bootpack
+DEL = rm -f
+GCC = gcc -c -m32 -fno-pic -nostdlib
+LD = ld -m elf_i386 -T os.ls
+# nasm:
+# 	-f: Select an output format.
+# 	ELF32 (i386) object files (e.g. Linux)
+NASM_ELF32 = nasm -f elf32
+NASM = nasm
+
 
 # Commands
 default:
 	make run
 
-tsprintf.o: tsprintf.c
-	gcc -c -m32 -fno-stack-protector -o tsprintf.o tsprintf.c
+%.o: %.c
+	$(GCC) -o $*.o $*.c
 
-hankaku.o: hankaku.c
-	gcc -c -m32 -o hankaku.o hankaku.c
+ipl.bin: ipl10.asm
+	$(NASM) -o ipl10.bin ipl10.asm
 
-ipl.bin: $(IPL).asm Makefile
-	nasm $(IPL).asm -o $(IPL).bin
+nasmhead.bin: nasmhead.asm
+	$(NASM) -o nasmhead.bin nasmhead.asm 
 
-asmhead.bin: $(HEADER).asm
-	nasm $(HEADER).asm -o $(HEADER).bin
+nasmfunc.o: nasmfunc.asm
+	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
-# nasm:
-# 	-f: Select an output format.
-# 	ELF32 (i386) object files (e.g. Linux)
-nasmfunc.o: $(FUNC).asm
-	nasm -f elf32 -o $(FUNC).o $(FUNC).asm
+bootpack.bin: bootpack.o dsctbl.o graphic.o hankaku.o nasmfunc.o tsprintf.o 
+	$(LD) -e hari_main -o bootpack.bin bootpack.o dsctbl.o graphic.o hankaku.o nasmfunc.o tsprintf.o 
 
-bootpack.o: $(BOOTPACK).c
-	gcc -c -m32 -fno-pic -o $(BOOTPACK).o $(BOOTPACK).c
-
-bootpack.bin: $(BOOTPACK).o $(FUNC).o hankaku.o tsprintf.o
-	ld -m elf_i386 -e hari_main -o $(BOOTPACK).bin -T os.ls $(BOOTPACK).o hankaku.o tsprintf.o $(FUNC).o
-
-os.sys: $(HEADER).bin $(BOOTPACK).bin
-	cat $(HEADER).bin $(BOOTPACK).bin > os.sys
+os.sys: nasmhead.bin bootpack.bin
+	cat nasmhead.bin bootpack.bin > os.sys
 
 # mformat: Add an MSDOS file sys
 # 	-f: Specifies the size of the DOS filesystem to format. 
@@ -45,7 +40,7 @@ os.sys: $(HEADER).bin $(BOOTPACK).bin
 # mcopy: Copy MSDOS files to/from Unix.
 # :: To overwrite if a os.sys file exists already 
 os.img: ipl.bin os.sys
-	mformat -f 1440 -C -B $(IPL).bin -i os.img ::
+	mformat -f 1440 -C -B ipl10.bin -i os.img ::
 	mcopy -i os.img os.sys ::
 
 run: os.img
