@@ -52,19 +52,19 @@ io_in32: ; int io_in32(int port);
   IN EAX, DX
   RET
 
-io_out8: ; void io_out8(void);
+io_out8: ; void io_out8(int port, int data);
   MOV EDX, [ESP+4] ; Port
   MOV AL, [ESP+8] ; Data
   OUT DX, AL
   RET
 
-io_out16: ; void io_out16(void);
+io_out16: ; void io_out16(int port, int data);
   MOV EDX, [ESP+4] ; Port
   MOV AX, [ESP+8] ; Data
   OUT DX, AX
   RET
 
-io_out32: ; void io_out32(void);
+io_out32: ; void io_out32(int port, int data);
   MOV EDX, [ESP+4] ; Port
   MOV EAX, [ESP+8] ; Data
   OUT DX, EAX
