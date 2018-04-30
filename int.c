@@ -3,6 +3,9 @@
 
 
 void init_pic(void) {
+  struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
+  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "hoge");
+
   io_out8(PIC0_IMR, 0xff); // Deny all interrupt requests
   io_out8(PIC1_IMR, 0xff); // Deny all interrupt requests
 
