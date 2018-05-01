@@ -83,7 +83,8 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 #define PORT_KEYDAT 0x0060
 
 struct KEYBUF {
-  unsigned char data, flag;
+  unsigned char data[32];
+  int next;
 };
 
 void init_pic(void);

@@ -31,9 +31,9 @@ void inthandler21(int *esp) {
   io_out8(PIC0_OCW2, 0x61); // Inform the end of IRQ-01's acception
   data = io_in8(PORT_KEYDAT);
 
-  if (keybuf.flag == 0) {
-    keybuf.data = data;
-    keybuf.flag = 1;
+  if (keybuf.next < 32) {
+    keybuf.data[keybuf.next] = data;
+    keybuf.next++;
   }
   return;
 }
