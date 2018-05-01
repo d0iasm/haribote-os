@@ -36,6 +36,22 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 /* -- dsctbl.c end -- */
 
 
+/* -- fifo.c start -- */
+#define FLAGS_OVERRUN 0x0001
+
+struct FIFO8 {
+  unsigned char *buf;
+  int p, q;
+  int size, free, flags;
+};
+
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
+int fifo8_put(struct FIFO8 *fifo, unsigned char data);
+int fifo8_get(struct FIFO8 *fifo);
+int fifo8_status(struct FIFO8 *fifo);
+/* -- fifo.c end -- */
+
+
 /* -- graphic.c start -- */
 #define COL8_000000 0
 #define COL8_FF0000 1
@@ -81,11 +97,6 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 #define PIC1_ICW4 0x00a1
 
 #define PORT_KEYDAT 0x0060
-
-struct KEYBUF {
-  unsigned char data[32];
-  int next;
-};
 
 void init_pic(void);
 void inthandler21(int *esp);

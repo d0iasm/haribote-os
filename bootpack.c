@@ -3,11 +3,11 @@
 #include "bootpack.h"
 
 
-extern struct KEYBUF keybuf;
+extern struct FIFO8 keyfifo;
 
 void hari_main(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-  char s[40], mcursor[256];
+  char s[40], mcursor[256], keybuf[32];
   int i;
   int mx = (binfo->scrnx - 16) / 2;
   int my = (binfo->scrny - 28 - 16) / 2;
@@ -23,21 +23,17 @@ void hari_main(void) {
   tsprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
+  fifo8_init(&keyfifo, 32, keybuf);
   // Allow interruptions from keyboard and mouse
   io_out8(PIC0_IMR, 0xf9);
   io_out8(PIC1_IMR, 0xef);
 
   for (;;) {
     io_cli();
-
-    if (keybuf.next == 0) {
+    if (fifo8_status(&keyfifo) == 0) {
       io_stihlt();
     } else {
-      i = keybuf.data[0];
-      keybuf.next--;
-      for (int j=0; j<keybuf.next; j++) {
-        keybuf.data[j] = keybuf.data[j + 1];
-      }
+      i = fifo8_get(&keyfifo);
       io_sti();
       tsprintf(s, "%x", i);
       boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
