@@ -16,6 +16,13 @@ void hari_main(void) {
   init_pic();
   io_sti();
 
+  fifo8_init(&keyfifo, 32, keybuf);
+  // Allow interruptions from keyboard and mouse
+  io_out8(PIC0_IMR, 0xf9);
+  io_out8(PIC1_IMR, 0xef);
+
+  init_keyboard();
+
   init_palette();
   init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
   init_mouse_cursor8(mcursor, COL8_008484);
@@ -23,10 +30,7 @@ void hari_main(void) {
   tsprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
-  fifo8_init(&keyfifo, 32, keybuf);
-  // Allow interruptions from keyboard and mouse
-  io_out8(PIC0_IMR, 0xf9);
-  io_out8(PIC1_IMR, 0xef);
+  enable_mouse();
 
   for (;;) {
     io_cli();
@@ -42,3 +46,27 @@ void hari_main(void) {
   }
 }
 
+void wait_KBC_sendready(void) {
+  for(;;) {
+    if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+      break;
+    }
+  }
+  return;
+}
+
+void init_keyboard(void) {
+  wait_KBC_sendready();
+  io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+  wait_KBC_sendready();
+  io_out8(PORT_KEYDAT, KBC_MODE);
+  return;
+}
+
+void enable_mouse(void) {
+  wait_KBC_sendready();
+  io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+  wait_KBC_sendready();
+  io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+  return;
+}
