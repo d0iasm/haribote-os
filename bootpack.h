@@ -82,7 +82,7 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 
 #define PORT_KEYDAT 0x0060
 
-struct KETBUF {
+struct KEYBUF {
   unsigned char data, flag;
 };
 
@@ -97,6 +97,7 @@ void inthandler2c(int *esp);
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
 int io_in8(int port);
 void io_out8(int port, int data);
 int io_load_eflags(void);
