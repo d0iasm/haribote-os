@@ -1,67 +1,105 @@
-#include <stdarg.h>
+#include "bootpack.h"
 
-//10進数からASCIIコードに変換
-int dec2asc (char *str, int dec) {
-  int len = 0, len_buf; //桁数
-  int buf[10];
-  while (1) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
-    buf[len++] = dec % 10;
-    if (dec < 10) break;
-    dec /= 10;
-  }
-  len_buf = len;
-  while (len) {
-    *(str++) = buf[--len] + 0x30;
-  }
-  return len_buf;
-}
 
-//16進数からASCIIコードに変換
-int hex2asc (char *str, int dec) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
-  int len = 0, len_buf; //桁数
-  int buf[10];
-  while (1) {
-    buf[len++] = dec % 16;
-    if (dec < 16) break;
-    dec /= 16;
-  }
-  len_buf = len;
-  while (len) {
-    len --;
-    *(str++) = (buf[len]<10)?(buf[len] + 0x30):(buf[len] - 9 + 0x60);
-  }
-  return len_buf;
-}
+int tsprintf(char *str, const char *fmt, ...) {
+  int *arg = (int *)(&str + 2);	// 可変個引数の配列
+  int cnt;			// 生成した文字数
+  int argc = 0;		// 引数の個数
+  int i;				// カウンタ
+  char buf[20];		// 数値変換用バッファ
+  const char *p = fmt;// コピー元フォーマットを走査する
 
-/*
- * Arguments:
- *  str: The output destination of string
- *  fmt: Format string
- * Return:
- *  The number of outputting string
- */
-int tsprintf (char *str, char *fmt, ...) {
-  va_list list;
-  int i, len;
-  va_start(list, 2);
+  strcls(str);
+  strcls(buf);	// バッファの初期化
+  for(cnt = 0; *p != '\0'; p++) {
+    switch(*p) {
+      case '%':
+        // フォーマット指定子の場合は引数の数値を文字列へ変換
+        switch(p[1]) {
+          //case 'c': int2char(buf, arg[argc++]);	break;
+          case 'd': int2dec(buf, arg[argc++]);	break;
+          case 'x': int2hex(buf, arg[argc++], 0);	break;
+          case 'X': int2hex(buf, arg[argc++], 1);	break;
+          case 's': int2str(buf, arg[argc++]);	break;
+                    //case 'f':
+        }
+        // 変換した数値を生成文字列にコピー
+        for(i = 0; buf[i] != '\0'; i++,cnt++) *str++ = buf[i];
+        p++;
+        break;
 
-  while (*fmt) {
-    if(*fmt=='%') {
-      fmt++;
-      switch(*fmt){
-        case 'd':
-          len = dec2asc(str, va_arg (list, int));
-          break;
-        case 'x':
-          len = hex2asc(str, va_arg (list, int));
-          break;
-      }
-      str += len; fmt++;
-    } else {
-      *(str++) = *(fmt++);
+      case '\\':
+
+        break;
+
+      default:
+        // フォーマット指定子以外はそのままコピー
+        *str++ = *p; cnt++;
     }	
   }
-  *str = 0x00; //最後にNULLを追加
-  va_end(list);
-  return len;
+  return cnt;
+}
+
+// ヌル文字で埋める
+void strcls(char *str) {
+  while(*str != '\0') *str++ = '\0';
+}
+
+// ASCIIコードを文字に変換する
+void int2char(char *s, int value) {
+  s[0] = (char)value;
+  s[1] = '\0';
+}
+
+// 数値を16進数文字列に変換する
+// flag: 大文字なら1, 小文字なら0
+void int2hex(char *s, int value, int flag) {
+  int zero		= 0;	// 0以外の桁が出たかどうか
+  int filter		= 0x0f;	// 16進数で1桁だけ抽出するフィルタ
+  int i;
+  // 16進数のアルファベット
+  char alphabet 	= flag ? 'A' : 'a';
+
+  // 16進数はint型で最大8桁
+  for(i = 0; i < 8; i++) {
+    // 桁が10～15なら'A'～'F'に変換
+    if(((value >> (7-i)*4) & filter) >= 10) {
+      *s++ = alphabet + ((value >> (7-i)*4) & filter) - 10;
+    } else {
+      // 桁が0ではない、又は既に0以外の数字が上位の桁にある
+      // -> '0'～'9'に変換
+      if(!( ((value >> (7-i)*4) & filter) == 0 && !zero ))
+        *s++ = '0' + ((value >> (7-i)*4) & filter);
+    }
+  }
+  *s = '\0';
+}
+
+// 10進数valueのn桁目を返す
+int figure(int value, int n) {
+  int i;
+  for(i = 0; i < n-1; i++) value /= 10;
+  return value % 10;
+}
+
+// 数値を10進数文字列に変換する
+void int2dec(char *s, int value) {
+  int i;
+  char zero = 1;
+
+  if(!value) {
+    s[0] = '0'; s[1] = '\0';
+    return;
+  }
+
+  for(i = 0; i < 10; i++) {
+    if(zero && figure(value, 10-i) != 0) zero = 0;
+    if(!zero) *s++ = '0' + figure(value, 10-i);
+  }
+}
+
+// 指定アドレスからバッファへの文字列のコピー(strcpyと同じ)
+void int2str(char *s, int value) {
+  char *p = (char *)value;
+  while(*p != '\0') *s++ = *p++;
 }

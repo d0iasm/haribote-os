@@ -8,7 +8,7 @@ LD = ld -m elf_i386 -T os.ls
 # 	ELF32 (i386) object files (e.g. Linux)
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
-
+QEMU = qemu-system-i386 -m 32 -rtc base=localtime -vga std -fda 
 
 # Commands
 default:
@@ -44,7 +44,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img os.sys ::
 
 run: os.img
-	qemu-system-i386 -fda os.img
+	$(QEMU) os.img
 
 clean:
 	rm -f *.bin
@@ -54,9 +54,4 @@ clean:
 	rm -f *.sys
 
 debug: 
-	qemu-system-i386 \
-	  -m 32 \
-	  -rtc base=localtime \
-	  -vga std \
-	  -fda os.img \
-	  -gdb tcp::10000 -S &
+	$(QEMU) os.img -gdb tcp::10000 -S &

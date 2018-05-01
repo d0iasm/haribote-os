@@ -31,7 +31,7 @@ void hari_main(void) {
   putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
   tsprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
-
+  
   enable_mouse();
 
   for (;;) {
@@ -78,6 +78,6 @@ void enable_mouse(void) {
   io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
   wait_KBC_sendready();
   io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-  return; 
+  return;
 }
 

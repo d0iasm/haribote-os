@@ -32,7 +32,7 @@ void inthandler21(int *esp) {
   return;
 }
 
-// Interrupt from mouse
+// Interrupt from PS/2 mouse
 void inthandler2c(int *esp) {
   unsigned char data;
   io_out8(PIC1_OCW2, 0x64); // Inform the end of IRQ-12's acception to PIC1

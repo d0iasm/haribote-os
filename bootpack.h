@@ -155,10 +155,17 @@ struct BOOTINFO { // 0x0ff0 ~ 0x0fff
 
 /* -- tsprintf.c start --*/
 int tsprintf(char *str, const char *fmt, ...);
+// void strcls(char *str);
+// void int2hex(char *s, int v);
+// int figure(int v, int n);
+// void int2dec(char *s, int v);
 void strcls(char *str);
-void int2hex(char *s, int v);
-int figure(int v, int n);
-void int2dec(char *s, int v);
+int figure(int value, int n);
+void int2char(char *, int);
+void int2hex(char *, int, int);
+void int2dec(char *, int);
+void int2str(char *, int);
+void int2float(char *, int);
 /* -- tsprintf.c end --*/
 
 #endif // _BOOTPACK_H
