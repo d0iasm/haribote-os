@@ -1,4 +1,4 @@
-  ; minimum-os boot asm
+  ; nasmhead.asm
 
   BOTPAK EQU 0x00280000 ; Load destination of bootpack
   DSKCAC EQU 0x00100000 ; Disk cache destination
@@ -48,9 +48,7 @@
   OUT 0x60, AL
   CALL waitkbdout
 
-  ; Protect mode
-  ; [INSTRSET "i486p"] ; To use 486 instruction set
-
+  ; Move protect mode to use i486 instruction set
   LGDT [GDTR0]
   MOV EAX, CR0
   AND EAX, 0x7fffffff ; Set bit31 to 0 not to allow paging

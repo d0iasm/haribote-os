@@ -35,7 +35,8 @@ gcc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609
 ## References
 - BIOS settings: http://oswiki.osask.jp/?(AT)BIOS
 - Memory maps: http://oswiki.osask.jp/?(AT)memorymap
-- VGA hardware: https://wiki.osdev.org/VGA_Hardware
-- How to format to an img file: http://bttb.s1.valueserver.jp/wordpress/blog/2017/11/25/makeos-3-1/
-- How to debug qemu by gdb: http://bttb.s1.valueserver.jp/wordpress/blog/2017/12/06/makeos-3-2/
-
+- [VGA hardware](https://wiki.osdev.org/VGA_Hardware)
+- [How to format to an img file](http://bttb.s1.valueserver.jp/wordpress/blog/2017/11/25/makeos-3-1/)
+- [How to debug qemu by gdb](http://bttb.s1.valueserver.jp/wordpress/blog/2017/12/06/makeos-3-2/)
+- [x86 Assembly/x86 Instructions](https://en.wikibooks.org/wiki/X86_Assembly/X86_Instructions)
+- [x86 アセンブラ](https://ja.wikibooks.org/wiki/X86%E3%82%A2%E3%82%BB%E3%83%B3%E3%83%96%E3%83%A9)
