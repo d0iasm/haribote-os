@@ -82,6 +82,10 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 
 #define PORT_KEYDAT 0x0060
 
+struct KETBUF {
+  unsigned char data, flag;
+};
+
 void init_pic(void);
 void inthandler21(int *esp);
 void inthandler27(int *esp);

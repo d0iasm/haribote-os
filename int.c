@@ -1,6 +1,7 @@
 // int.c: Setting for PIC to send interrupt request
 #include "bootpack.h"
 
+struct KETBUF keybuf;
 
 void init_pic(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
@@ -30,13 +31,16 @@ void inthandler21(int *esp) {
   io_out8(PIC0_OCW2, 0x61); // Inform the end of IRQ-01's acception
   data = io_in8(PORT_KEYDAT);
 
+  // if (keybuf.flag == 0) {
+    // keybuf.data = data;
+    // keybuf.flag = 1;
+  // }
+
   tsprintf(s, "%x", data);
   boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
 
-  for(;;) {
-    io_hlt();
-  }
+  return;
 }
 
 void inthandler2c(int *esp) {
