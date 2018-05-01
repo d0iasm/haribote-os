@@ -26,8 +26,13 @@ void init_pic(void) {
 // Interrupt from PS/2 keyboard
 void inthandler21(int *esp) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-  boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32*8-1, 15);
-  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "INT 21 (IRQ-1) : PS/2 keyboard");
+  unsigned char data, s[4];
+  io_out8(PIC0_OCW2, 0x61); // Inform the end of IRQ-01's acception
+  data = io_in8(PORT_KEYDAT);
+
+  tsprintf(s, "%x", data);
+  boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
 
   for(;;) {
     io_hlt();
@@ -38,7 +43,7 @@ void inthandler2c(int *esp) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
   boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32*8-1, 15);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "INT 2C (IRQ-12) : PS/2 mouse");
-  
+
   for (;;) {
     io_hlt();
   }
