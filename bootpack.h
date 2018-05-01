@@ -14,6 +14,7 @@
 
 struct MOUSE_DEC {
   unsigned char buf[3], phase;
+  int x, y, btn;
 };
 
 void wait_KBC_sendready(void);
