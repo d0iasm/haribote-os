@@ -26,8 +26,8 @@ nasmhead.bin: nasmhead.asm
 nasmfunc.o: nasmfunc.asm
 	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
-bootpack.bin: bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o mouse.o nasmfunc.o tsprintf.o 
-	$(LD) -e hari_main -o bootpack.bin bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o mouse.o nasmfunc.o tsprintf.o 
+bootpack.bin: bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o nasmfunc.o tsprintf.o 
+	$(LD) -e hari_main -o bootpack.bin bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o mouse.o memory.o nasmfunc.o tsprintf.o 
 
 os.sys: nasmhead.bin bootpack.bin
 	cat nasmhead.bin bootpack.bin > os.sys
