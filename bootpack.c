@@ -51,7 +51,7 @@ void hari_main(void) {
   tsprintf(s, "memory %dMB   free : %dKB",
       memtotal / (1024 * 1024), memman_total(memman) / 1024);
   putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
-  sheet_refresh(shtctl);
+  sheet_refresh(shtctl, sht_back, 0, 0, binfo->scrnx, 48);
 
   for (;;) {
     io_cli();
@@ -64,7 +64,7 @@ void hari_main(void) {
         tsprintf(s, "%x", i);
         boxfill8(buf_back, binfo->scrnx, COL8_008484,  0, 16, 15, 31);
         putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
-        sheet_refresh(shtctl);
+        sheet_refresh(shtctl, sht_back, 0, 16, 16, 32);
       } else if (fifo8_status(&mousefifo) != 0) {
         i = fifo8_get(&mousefifo);
         io_sti();
@@ -81,6 +81,7 @@ void hari_main(void) {
           }
           boxfill8(buf_back, binfo->scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
           putfonts8_asc(buf_back, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+          sheet_refresh(shtctl, sht_back, 32, 16, 32+15*8, 32);
           mx += mdec.x;
           my += mdec.y;
           if (mx < 0) {
@@ -98,6 +99,7 @@ void hari_main(void) {
           tsprintf(s, "(%d, %d)", mx, my);
           boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 0, 79, 15);
           putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
+          sheet_refresh(shtctl, sht_back, 0, 0, 80, 16);
           sheet_slide(shtctl, sht_mouse, mx, my);
         }
       }
