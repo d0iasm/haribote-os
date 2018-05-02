@@ -102,15 +102,18 @@ unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size) {
 
 int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size) {
   int i, j;
+
+  // Decide the place to insert new free
   for (i=0; i<man->frees; i++) {
     if (man->free[i].addr > addr) break;
   }
 
-  if (i > 0) {
-    if (man->free[i - 1].addr + man->free[i - 1].size == addr) {
+  // free[i-1].addr < addr < free[i].addr
+  if (i > 0) { // Exist previous free
+    if (man->free[i - 1].addr + man->free[i - 1].size == addr) { // Connect new free to previous free[i-1]
       man->free[i - 1].size += size;
-      if (i < man->frees) {
-        if (addr + size == man->free[i].addr) {
+      if (i < man->frees) { // Exist next free
+        if (addr + size == man->free[i].addr) { // Connect new free to next free[i] 
           man->free[i - 1].size += man->free[i].size;
           man->frees--;
           for (; i < man->frees; i++) {
@@ -121,13 +124,17 @@ int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size) {
       return 0;
     }
   }
+
+  // addr < free[i].addr
   if (i < man->frees) {
-    if (addr + size == man->free[i].addr) {
+    if (addr + size == man->free[i].addr) { // Connect new free to next free[i]
       man->free[i].addr = addr;
       man->free[i].size += size;
       return 0;
     }
   }
+
+  // Create new free between free[i-1] and free[i]
   if (man->frees < MEMMAN_FREES) {
     for (j = man->frees; j > i; j--) {
       man->free[j] = man->free[j - 1];
@@ -140,6 +147,8 @@ int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size) {
     man->free[i].size = size;
     return 0;
   }
+
+  // Failed free
   man->losts++;
   man->lostsize += size;
   return -1;
