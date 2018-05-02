@@ -31,9 +31,9 @@ void hari_main(void) {
 
   init_palette();
   shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
-  sht_back  = sheet_alloc(shtctl);
+  sht_back = sheet_alloc(shtctl);
   sht_mouse = sheet_alloc(shtctl);
-  buf_back  = (unsigned char *) memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
+  buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
   sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
   sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
@@ -44,8 +44,10 @@ void hari_main(void) {
   sheet_slide(shtctl, sht_mouse, mx, my);
   sheet_updown(shtctl, sht_back,  0);
   sheet_updown(shtctl, sht_mouse, 1);
+
   tsprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
+
   tsprintf(s, "memory %dMB   free : %dKB",
       memtotal / (1024 * 1024), memman_total(memman) / 1024);
   putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
