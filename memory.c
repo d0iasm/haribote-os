@@ -75,7 +75,7 @@ unsigned int memman_total(struct MEMMAN *man) {
   return t;
 }
 
-unsigned int memman_alloc(struct MEMMAN *man, int size) {
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size) {
   unsigned int a;
   for (int i=0; i<man->frees; i++) {
     if (man->free[i].size >= size) {

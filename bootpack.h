@@ -112,6 +112,8 @@ void inthandler27(int *esp);
 #define KEYCMD_WRITE_MODE 0x60
 #define KBC_MODE 0x47
 
+extern struct FIFO8 keyfifo;
+
 void inthandler21(int *esp);
 void wait_KBC_sendready(void);
 void init_keyboard(void);
@@ -147,6 +149,8 @@ int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 /* -- mouse.c start -- */
 #define MOUSECMD_ENABLE 0xf4
 #define KEYCMD_SENDTO_MOUSE 0xd4
+
+extern struct FIFO8 mousefifo;
 
 struct MOUSE_DEC {
   unsigned char buf[3], phase;
@@ -191,6 +195,32 @@ struct BOOTINFO { // 0x0ff0 ~ 0x0fff
   char *vram;
 };
 /* -- nasmhead.asm end --*/
+
+
+/* -- sheet.c start --*/
+#define MAX_SHEETS 256
+#define SHEET_USE 1
+
+struct SHEET {
+  unsigned char *buf;
+  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+};
+
+struct SHTCTL { // sheet control
+  unsigned char *vram;
+  int xsize, ysize, top;
+  struct SHEET *sheets[MAX_SHEETS];
+  struct SHEET sheets0[MAX_SHEETS];
+};
+
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl);
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
+void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height);
+void sheet_refresh(struct SHTCTL *ctl);
+void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0);
+void sheet_free(struct SHTCTL *ctl, struct SHEET *sht);
+/* -- sheet.c end --*/
 
 
 /* -- tsprintf.c start --*/
