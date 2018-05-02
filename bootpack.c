@@ -25,7 +25,8 @@ void hari_main(void) {
   io_out8(PIC1_IMR, 0xef);
 
   init_keyboard();
-
+  enable_mouse(&mdec);
+  
   init_palette();
   init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
   init_mouse_cursor8(mcursor, COL8_008484);
@@ -33,7 +34,9 @@ void hari_main(void) {
   tsprintf(s, "(%d, %d)", mx, my);
   putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
-  enable_mouse(&mdec);
+  i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
+  tsprintf(s, "memory %dMB", i);
+  putfonts8_asc(binfo->vram, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
 
   for (;;) {
     io_cli();
@@ -88,3 +91,59 @@ void hari_main(void) {
   }
 }
 
+unsigned int memtest(unsigned int start, unsigned int end) {
+  char flg486 = 0;
+  unsigned int eflg, cr0, i;
+
+  // Check i386 or i486
+  // 386では18bit目にあるAC flagが常に0
+  // AC flagを1にして書き込んで、また読み出したときに0に戻っていたら386
+  eflg = io_load_eflags();
+  eflg |= EFLAGS_AC_BIT; // AC-bit = 1
+  io_store_eflags(eflg);
+  eflg = io_load_eflags();
+  if ((eflg & EFLAGS_AC_BIT) != 0) {
+    flg486 = 1;
+  }
+  eflg &= ~EFLAGS_AC_BIT; // AC-bit = 0
+  io_store_eflags(eflg);
+
+  if (flg486 != 0) {
+    cr0 = load_cr0();
+    cr0 |= CR0_CACHE_DISABLE; // Deny cache
+    store_cr0(cr0);
+  }
+
+  i = memtest_sub(start, end);
+
+  if (flg486 != 0) {
+    cr0 = load_cr0();
+    cr0 &= ~CR0_CACHE_DISABLE; // Allow cache
+    store_cr0(cr0);
+  }
+  return i;
+}
+
+unsigned int memtest_sub(unsigned int start, unsigned int end) {
+  unsigned int i, *p, old;
+  unsigned int pat0 = 0xaa55aa55;
+  unsigned int pat1 = 0x55aa55aa;
+
+  for (i=start; i<=end; i+=0x1000) { // Check every 4kB
+    p = (unsigned int *) (i + 0xffc); // Check 4 bytes at the end of 4kB
+    old = *p;
+    *p = pat0;
+    *p ^= 0xffffffff; // Inversion
+    if (*p != pat1) {
+not_memory:
+      *p = old;
+      break;
+    }
+    *p ^= 0xffffffff;
+    if (*p != pat0) {
+      goto not_memory;
+    }
+    *p = old;
+  }
+  return i;
+}

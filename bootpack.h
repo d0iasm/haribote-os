@@ -3,6 +3,16 @@
 #define _BOOTPACK_H_
 
 
+/* -- bootpack.c start -- */
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+
+unsigned int memtest(unsigned int start, unsigned int end);
+unsigned int memtest_sub(unsigned int start, unsigned int end);
+/* -- bootpack.c start -- */
+
+
+
 /* -- dsctbl.c start -- */
 #define ADR_IDT 0x0026f800
 #define LIMIT_IDT 0x000007ff
@@ -147,6 +157,8 @@ void load_idtr(int limit, int addr);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
+int load_cr0(void);
+void store_cr0(int cr0);
 /* -- nasmfunc.asm end --*/
 
 
