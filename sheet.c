@@ -6,9 +6,7 @@ struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize
   struct SHTCTL *ctl;
   int i;
   ctl = (struct SHTCTL *) memman_alloc_4k(memman, sizeof (struct SHTCTL));
-  if (ctl == 0) {
-    goto err;
-  }
+  if (ctl == 0) return ctl;
   ctl->vram = vram;
   ctl->xsize = xsize;
   ctl->ysize = ysize;
@@ -16,7 +14,6 @@ struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize
   for (i = 0; i < MAX_SHEETS; i++) {
     ctl->sheets0[i].flags = 0;
   }
-err:
   return ctl;
 }
 
