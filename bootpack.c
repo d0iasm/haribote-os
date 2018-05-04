@@ -21,7 +21,8 @@ void hari_main(void) {
   io_sti();
   fifo8_init(&keyfifo, 32, keybuf);
   fifo8_init(&mousefifo, 128, mousebuf);
-  io_out8(PIC0_IMR, 0xf9);
+  init_pic();
+  io_out8(PIC0_IMR, 0xf8);
   io_out8(PIC1_IMR, 0xef);
 
   init_keyboard();

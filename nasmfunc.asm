@@ -15,12 +15,14 @@
   global io_store_eflags
   global load_gdtr
   global load_idtr
+  global asm_inthandler20
   global asm_inthandler21
   global asm_inthandler27
   global asm_inthandler2c
   global load_cr0
   global store_cr0
 
+  extern inthandler20
   extern inthandler21
   extern inthandler27
   extern inthandler2c
@@ -101,6 +103,23 @@ load_idtr: ; void load_idtr(int limit, int addr);
   MOV [ESP+6], AX
   LIDT [ESP+6]
   RET
+
+asm_inthandler20:
+  PUSH ES
+  PUSH DS
+  PUSHAD
+  MOV EAX, ESP
+  PUSH EAX
+  MOV AX, SS
+  MOV DS, AX
+  MOV ES, AX
+  CALL inthandler20
+  POP EAX
+  POPAD
+  POP DS
+  POP ES
+  IRETD ; Execute IRETD when the end of interruption instead of RET(=return)
+
 
 asm_inthandler21:
   PUSH ES
