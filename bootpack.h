@@ -243,8 +243,9 @@ struct TIMER {
 };
 
 struct TIMERCTL {
-  unsigned int count, next;
-  struct TIMER timer[MAX_TIMER];
+  unsigned int count, next, using;
+  struct TIMER *timers[MAX_TIMER];
+  struct TIMER timers0[MAX_TIMER];
 };
 
 void init_pit(void);
