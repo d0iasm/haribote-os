@@ -46,10 +46,20 @@ struct FIFO8 {
   int size, free, flags;
 };
 
+struct FIFO32 {
+  int *buf;
+  int p, q;
+  int size, free, flags;
+};
+
 void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
 int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_get(struct FIFO8 *fifo);
 int fifo8_status(struct FIFO8 *fifo);
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf);
+int fifo32_put(struct FIFO32 *fifo, int data);
+int fifo32_get(struct FIFO32 *fifo);
+int fifo32_status(struct FIFO32 *fifo);
 /* -- fifo.c end -- */
 
 
@@ -112,11 +122,9 @@ void inthandler27(int *esp);
 #define KEYCMD_WRITE_MODE 0x60
 #define KBC_MODE 0x47
 
-extern struct FIFO8 keyfifo;
-
 void inthandler21(int *esp);
 void wait_KBC_sendready(void);
-void init_keyboard(void);
+void init_keyboard(struct FIFO32 *fifo, int data0);
 /* -- keyboard.c end -- */
 
 
@@ -150,15 +158,13 @@ int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 #define MOUSECMD_ENABLE 0xf4
 #define KEYCMD_SENDTO_MOUSE 0xd4
 
-extern struct FIFO8 mousefifo;
-
 struct MOUSE_DEC {
   unsigned char buf[3], phase;
   int x, y, btn;
 };
 
 void inthandler2c(int *esp);
-void enable_mouse(struct MOUSE_DEC *mdec);
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec);
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
 /* -- mouse.c end -- */
 
@@ -237,21 +243,22 @@ void sheet_free(struct SHEET *sht);
 extern struct TIMERCTL timerctl;
 
 struct TIMER {
+  struct TIMER *next;
   unsigned int timeout, flags;
-  struct FIFO8 *fifo;
-  unsigned char data;
+  struct FIFO32 *fifo;
+  int data;
 };
 
 struct TIMERCTL {
   unsigned int count, next, using;
-  struct TIMER *timers[MAX_TIMER];
+  struct TIMER *t0;
   struct TIMER timers0[MAX_TIMER];
 };
 
 void init_pit(void);
 struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data);
+void timer_init(struct TIMER *timer, struct FIFO8 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
 void inthandler20(int *esp);
 /* -- timer.c end --*/
