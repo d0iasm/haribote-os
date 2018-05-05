@@ -16,10 +16,11 @@ void init_pit(void) {
     timerctl.timers0[i].flags = 0;
   }
   t = timer_alloc();
-  t->timeout = TIMER_FLAGS_USING;
+  t->timeout = 0xffffffff;
+  t->flags = TIMER_FLAGS_USING;
   t->next = 0;
   timerctl.t0 = t;
-  timerctl.next = 0xffffffff;
+  timerctl.next = 0xffffffff; 
   return;
 }
 
@@ -31,7 +32,7 @@ struct TIMER *timer_alloc(void) {
       return &timerctl.timers0[i];
     }
   }
-  return 0;
+  return 0; 
 }
 
 void timer_free(struct TIMER *timer) {
@@ -39,7 +40,7 @@ void timer_free(struct TIMER *timer) {
   return;
 }
 
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, int data) {
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data) {
   timer->fifo = fifo;
   timer->data = data;
   return;
@@ -55,7 +56,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout) {
   t = timerctl.t0;
   if (timer->timeout <= t->timeout) {
     timerctl.t0 = timer;
-    timer->next = t; 
+    timer->next = t;
     timerctl.next = timer->timeout;
     io_store_eflags(e);
     return;
@@ -73,9 +74,8 @@ void timer_settime(struct TIMER *timer, unsigned int timeout) {
 }
 
 void inthandler20(int *esp) {
-  int i, j;
   struct TIMER *timer;
-  io_out8(PIC0_OCW2, 0x60); // Notify the completion of IRQ-00 acception
+  io_out8(PIC0_OCW2, 0x60);
   timerctl.count++;
   if (timerctl.next > timerctl.count) {
     return;
@@ -87,10 +87,10 @@ void inthandler20(int *esp) {
     }
     timer->flags = TIMER_FLAGS_ALLOC;
     fifo32_put(timer->fifo, timer->data);
-    timer = timer->next;
+    timer = timer->next; 
   }
   timerctl.t0 = timer;
-  timerctl.next = timerctl.t0->timeout;
+  timerctl.next = timer->timeout;
   return;
 }
 

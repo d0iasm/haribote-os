@@ -9,8 +9,8 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, i
 void hari_main(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
   struct FIFO32 fifo;
-  int fifobuf[128];
   char s[40];
+  int fifobuf[128];
   struct TIMER *timer, *timer2, *timer3;
   int mx, my, i, count = 0;
   unsigned int memtotal;
@@ -23,13 +23,12 @@ void hari_main(void) {
   init_gdtidt();
   init_pic();
   io_sti();
-
   fifo32_init(&fifo, 128, fifobuf);
   init_pit();
   init_keyboard(&fifo, 256);
   enable_mouse(&fifo, 512, &mdec);
   io_out8(PIC0_IMR, 0xf8);
-  io_out8(PIC1_IMR, 0xef); 
+  io_out8(PIC1_IMR, 0xef);
 
   timer = timer_alloc();
   timer_init(timer, &fifo, 10);
@@ -53,7 +52,7 @@ void hari_main(void) {
   sht_win   = sheet_alloc(shtctl);
   buf_back  = (unsigned char *) memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
   buf_win   = (unsigned char *) memman_alloc_4k(memman, 160 * 52);
-  sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
+  sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); 
   sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
   sheet_setbuf(sht_win, buf_win, 160, 52, -1);
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
@@ -75,8 +74,9 @@ void hari_main(void) {
 
   for (;;) {
     count++;
-    tsprintf(s, "%d", timerctl.count);
-    putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
+
+    tsprintf(s, "timerctl count:  %d", timerctl.count);
+    putfonts8_asc_sht(sht_back, 0, 48, COL8_FFFFFF, COL8_008484, s, 32);
 
     io_cli();
     if (fifo32_status(&fifo) == 0) {
@@ -84,10 +84,10 @@ void hari_main(void) {
     } else {
       i = fifo32_get(&fifo);
       io_sti();
-      if (256 <= i && i <= 511) { // Keyboard data
+      if (256 <= i && i <= 511) {
         tsprintf(s, "%x", i - 256);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-      } else if (512 <= i && i <= 757) { // Mouse data
+      } else if (512 <= i && i <= 767) {
         if (mouse_decode(&mdec, i - 512) != 0) {
           tsprintf(s, "[lcr %d %d]", mdec.x, mdec.y);
           if ((mdec.btn & 0x01) != 0) {
@@ -118,19 +118,19 @@ void hari_main(void) {
           putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my);
         }
-      } else if (i == 10) { // 10 seconds timer
+      } else if (i == 10) {
         putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "10[sec]", 7);
         tsprintf(s, "%d", count);
         putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
-      } else if (i == 3) { // 3 seconds timer
+      } else if (i == 3) {
         putfonts8_asc_sht(sht_back, 0, 80, COL8_FFFFFF, COL8_008484, "3[sec]", 6);
-        count = 0;
-      } else if (i == 1) { // cursor timer
+        count = 0; 
+      } else if (i == 1) {
         timer_init(timer3, &fifo, 0);
         boxfill8(buf_back, binfo->scrnx, COL8_FFFFFF, 8, 96, 15, 111);
         timer_settime(timer3, 50);
         sheet_refresh(sht_back, 8, 96, 16, 112);
-      } else if (i == 0) { // cursor timer
+      } else if (i == 0) {
         timer_init(timer3, &fifo, 1);
         boxfill8(buf_back, binfo->scrnx, COL8_008484, 8, 96, 15, 111);
         timer_settime(timer3, 50);
@@ -139,7 +139,6 @@ void hari_main(void) {
     }
   }
 }
-
 
 void make_window8(unsigned char *buf, int xsize, int ysize, char *title) {
   static char closebtn[14][16] = {
@@ -195,4 +194,5 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, i
   sheet_refresh(sht, x, y, x + l * 8, y + 16);
   return;
 }
+
 

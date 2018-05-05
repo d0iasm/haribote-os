@@ -5,11 +5,10 @@
 struct FIFO32 *mousefifo;
 int mousedata0;
 
-// Interrupt from PS/2 mouse
 void inthandler2c(int *esp) {
   int data;
-  io_out8(PIC1_OCW2, 0x64); // Inform the end of IRQ-12's acception to PIC1
-  io_out8(PIC0_OCW2, 0x62); // Inform the end of IRQ-02's acception to PIC0
+  io_out8(PIC1_OCW2, 0x64);
+  io_out8(PIC0_OCW2, 0x62);
   data = io_in8(PORT_KEYDAT);
   fifo32_put(mousefifo, data + mousedata0);
   return;
@@ -22,7 +21,7 @@ void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec) {
   io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
   wait_KBC_sendready();
   io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-  mdec->phase = 0;
+  mdec->phase = 0; 
   return;
 }
 
@@ -38,7 +37,7 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat) {
       mdec->buf[0] = dat;
       mdec->phase = 2;
     }
-return 0;
+    return 0;
   }
   if (mdec->phase == 2) {
     mdec->buf[1] = dat;
