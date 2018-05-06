@@ -1,5 +1,12 @@
   ; nasmhead.asm
 
+  VBEMODE EQU 0x105 ; 1024 x 768 x 8bit 
+  ; 0x100 :  640 x  400 x 8bit
+  ; 0x101 :  640 x  480 x 8bit
+  ; 0x103 :  800 x  600 x 8bit
+  ; 0x105 : 1024 x  768 x 8bit
+  ; 0x107 : 1280 x 1024 x 8bit
+
   BOTPAK EQU 0x00280000 ; Load destination of bootpack
   DSKCAC EQU 0x00100000 ; Disk cache destination
   DSKCAC0 EQU 0x00008000 ; Disk cache destination (Real mode)
@@ -14,18 +21,57 @@
 
   ORG 0xc200 ; Where to read this code
 
-  ; Image mode settings
-  MOV AL, 0x13 ; VGA graphic 320x200x8bit color
-  MOV AH, 0x00
-  INT 0x10
-  MOV BYTE [VMODE], 8 ; Memo of image mode
-  MOV WORD [SCRNX], 320
-  MOV WORD [SCRNY], 200
+
+  MOV		AX, 0x9000
+  MOV		ES, AX
+  MOV		DI, 0
+  MOV		AX, 0x4f00
+  INT		0x10
+  CMP		AX, 0x004f
+  JNE		scrn320
+
+  MOV		AX, [ES:DI+4]
+  CMP		AX, 0x0200
+  JB		scrn320			; if (AX < 0x0200) goto scrn320
+
+  MOV		CX, VBEMODE
+  MOV		AX, 0x4f01
+  INT		0x10
+  CMP		AX, 0x004f
+  JNE		scrn320
+
+  CMP		BYTE [ES:DI+0x19], 8
+  JNE		scrn320
+  CMP		BYTE [ES:DI+0x1b], 4
+  JNE		scrn320
+  MOV		AX, [ES:DI+0x00]
+  AND		AX, 0x0080
+  JZ		scrn320
+
+  MOV		BX, VBEMODE+0x4000
+  MOV		AX, 0x4f02
+  INT		0x10
+  MOV		BYTE [VMODE], 8	
+  MOV		AX, [ES:DI+0x12]
+  MOV		[SCRNX], AX
+  MOV		AX, [ES:DI+0x14]
+  MOV		[SCRNY], AX
+  MOV		EAX, [ES:DI+0x28]
+  MOV		[VRAM], EAX
+  JMP		keystatus
+
+scrn320:
+  MOV		AL, 0x13			
+  MOV		AH, 0x00
+  INT		0x10
+  MOV		BYTE [VMODE], 8
+  MOV		WORD [SCRNX], 320
+  MOV		WORD [SCRNY], 200
   MOV DWORD [VRAM], 0x000a0000
 
-  ; The status of keyborad LEDS
+keystatus:
   MOV AH, 0x02
-  INT 0x16 ; Keyboard BIOS
+  INT 0x16 ; keyboard BIOS
   MOV [LEDS], AL
 
   ; PICが一切の割り込みを受け付けないようにする

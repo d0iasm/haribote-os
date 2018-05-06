@@ -74,6 +74,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout) {
 }
 
 void inthandler20(int *esp) {
+
   struct TIMER *timer;
   io_out8(PIC0_OCW2, 0x60);
   timerctl.count++;
@@ -87,7 +88,7 @@ void inthandler20(int *esp) {
     }
     timer->flags = TIMER_FLAGS_ALLOC;
     fifo32_put(timer->fifo, timer->data);
-    timer = timer->next; 
+    timer = timer->next;
   }
   timerctl.t0 = timer;
   timerctl.next = timer->timeout;
