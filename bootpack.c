@@ -87,8 +87,12 @@ void hari_main(void) {
       if (256 <= i && i <= 511) { // keyboard data
         tsprintf(s, "%x", i - 256);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-        if (i == 0x1e + 256) {
-          putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, "A", 1);
+        if (i < 256 + 0x54) {
+          if (keytable[i - 256] != 0) {
+            s[0] = keytable[i - 256];
+            s[1] = 0;
+            putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 1);
+          }
         }
       } else if (512 <= i && i <= 767) { // mouse data
         if (mouse_decode(&mdec, i - 512) != 0) {
