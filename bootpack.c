@@ -73,21 +73,24 @@ void hari_main(void) {
   putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 40);
 
   for (;;) {
-    count++;
+    // count++;
 
     tsprintf(s, "timerctl count:  %d", timerctl.count);
     putfonts8_asc_sht(sht_back, 0, 48, COL8_FFFFFF, COL8_008484, s, 32);
 
     io_cli();
     if (fifo32_status(&fifo) == 0) {
-      io_sti();
+      io_stihlt();
     } else {
       i = fifo32_get(&fifo);
       io_sti();
-      if (256 <= i && i <= 511) {
+      if (256 <= i && i <= 511) { // keyboard data
         tsprintf(s, "%x", i - 256);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-      } else if (512 <= i && i <= 767) {
+        if (i == 0x1e + 256) {
+          putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, "A", 1);
+        }
+      } else if (512 <= i && i <= 767) { // mouse data
         if (mouse_decode(&mdec, i - 512) != 0) {
           tsprintf(s, "[lcr %d %d]", mdec.x, mdec.y);
           if ((mdec.btn & 0x01) != 0) {
@@ -120,11 +123,11 @@ void hari_main(void) {
         }
       } else if (i == 10) {
         putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "10[sec]", 7);
-        tsprintf(s, "%d", count);
-        putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
+        // tsprintf(s, "%d", count);
+        // putfonts8_asc_sht(sht_win, 40, 28, COL8_000000, COL8_C6C6C6, s, 10);
       } else if (i == 3) {
         putfonts8_asc_sht(sht_back, 0, 80, COL8_FFFFFF, COL8_008484, "3[sec]", 6);
-        count = 0; 
+        // count = 0; 
       } else if (i == 1) {
         timer_init(timer3, &fifo, 0);
         boxfill8(buf_back, binfo->scrnx, COL8_FFFFFF, 8, 96, 15, 111);
