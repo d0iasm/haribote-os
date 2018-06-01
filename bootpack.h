@@ -13,6 +13,7 @@
 #define AR_DATA32_RW 0x4092
 #define AR_CODE32_ER 0x409a
 #define AR_INTGATE32 0x008e
+#define AR_TSS32 0x0089
 
 // Each GDT size is 8 bytes and there are 8192 segmentations (0~8191)
 // GDT is global segment descriptor table
@@ -195,6 +196,8 @@ void asm_inthandler27(void);
 void asm_inthandler2c(void);
 int load_cr0(void);
 void store_cr0(int cr0);
+void load_tr(int tr);
+void taskswitch4(void);
 /* -- nasmfunc.asm end --*/
 
 
