@@ -22,8 +22,7 @@
   global load_cr0
   global store_cr0
   global load_tr
-  global taskswitch3
-  global taskswitch4
+  global farjmp
 
   extern inthandler20
   extern inthandler21
@@ -185,11 +184,7 @@ load_tr: ; void load_tr(int tr);
   LTR [ESP+4] ; tr
   RET
 
-taskswitch3:
-  JMP 3*8:0
-  RET
-
-taskswitch4: ; void taskswitch4(void);
-  JMP 4*8:0
+farjmp: ; void farjmp(int eip, int cs);
+  JMP FAR [ESP+4] ; sip, cs
   RET
 

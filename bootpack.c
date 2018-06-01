@@ -33,7 +33,7 @@ void task_b_main(void) {
       i = fifo32_get(&fifo);
       io_sti();
       if (i == 1) {
-        taskswitch3();
+        farjmp(0, 3*8);
       }
     }
   }
@@ -199,7 +199,7 @@ void hari_main(void) {
         }
       } else if (i == 10) {
         putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "10[sec]", 7);
-        taskswitch4();
+        farjmp(0, 4*8);
       } else if (i == 3) {
         putfonts8_asc_sht(sht_back, 0, 80, COL8_FFFFFF, COL8_008484, "3[sec]", 6);
       } else if (i <= 1) { 
