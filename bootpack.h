@@ -197,6 +197,7 @@ void asm_inthandler2c(void);
 int load_cr0(void);
 void store_cr0(int cr0);
 void load_tr(int tr);
+void taskswitch3(void);
 void taskswitch4(void);
 /* -- nasmfunc.asm end --*/
 

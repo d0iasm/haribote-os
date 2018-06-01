@@ -22,6 +22,7 @@
   global load_cr0
   global store_cr0
   global load_tr
+  global taskswitch3
   global taskswitch4
 
   extern inthandler20
@@ -182,6 +183,10 @@ store_cr0: ; void store_cr0(int cr0);
 
 load_tr: ; void load_tr(int tr);
   LTR [ESP+4] ; tr
+  RET
+
+taskswitch3:
+  JMP 3*8:0
   RET
 
 taskswitch4: ; void taskswitch4(void);
