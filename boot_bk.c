@@ -296,4 +296,3 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c) {
   boxfill8(sht->buf, sht->bxsize, c,           x0 - 1, y0 - 1, x1 + 0, y1 + 0);
   return;
 }
-
