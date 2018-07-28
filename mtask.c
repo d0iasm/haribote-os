@@ -9,7 +9,7 @@ struct TIMER *task_timer;
 struct TASK *task_init(struct MEMMAN *memman) {
   struct TASK *task;
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-  taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof(struct TASKCTL));
+  taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof (struct TASKCTL));
 
   for (int i = 0; i < MAX_TASKS; i++) {
     taskctl->tasks0[i].flags = 0;
@@ -19,6 +19,7 @@ struct TASK *task_init(struct MEMMAN *memman) {
 
   task = task_alloc();
   task->flags = 2; // Running flag
+  task->priority = 2;
   taskctl->running = 1;
   taskctl->tasks[0] = task;
   load_tr(task->sel);
@@ -53,21 +54,29 @@ struct TASK *task_alloc(void) {
   return 0;
 }
 
-void task_run(struct TASK *task) {
-  task->flags = 2; 
-  taskctl->tasks[taskctl->running] = task;
-  taskctl->running++;
+void task_run(struct TASK *task, int priority) {
+  if (priority > 0) {
+    task->priority = priority;
+  }
+  if (task->flags != 2) {
+    task->flags = 2; 
+    taskctl->tasks[taskctl->running] = task;
+    taskctl->running++;
+  }
   return;
 }
 
 void task_switch(void) {
-  timer_settime(task_timer, 2);
+  struct TASK *task;
+  taskctl->now++;
+
+  if (taskctl->now == taskctl->running) {
+    taskctl->now = 0;
+  }
+  task = taskctl->tasks[taskctl->now];
+  timer_settime(task_timer, task->priority);
   if (taskctl->running >= 2) {
-    taskctl->now++;
-    if (taskctl->now == taskctl->running) {
-      taskctl->now = 0;
-    }
-    farjmp(0, taskctl->tasks[taskctl->now]->sel);
+    farjmp(0, task->sel);
   }
   return;
 }
