@@ -179,6 +179,13 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
 /* -- mouse.c end -- */
 
 
+/* -- mtask.c start -- */
+extern struct TIMER *mt_timer;
+void mt_init(void);
+void mt_taskswitch(void);
+/* -- mtask.c end -- */
+
+
 /* -- nasmfunc.asm start --*/
 void io_hlt(void);
 void io_cli(void);
