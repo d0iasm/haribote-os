@@ -208,6 +208,7 @@ struct TASK *task_alloc(void);
 void task_run(struct TASK *task, int level, int priority);
 void task_switch(void);
 void task_sleep(struct TASK *task);
+void task_idle(void);
 /* -- mtask.c end -- */
 
 
