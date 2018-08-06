@@ -8,7 +8,7 @@ LD = ld -m elf_i386 -T os.ls
 # 	ELF32 (i386) object files (e.g. Linux)
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
-QEMU = qemu-system-i386 -m 32 -rtc base=localtime -vga std -fda 
+QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda  
 
 # Commands
 default:
