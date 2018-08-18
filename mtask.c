@@ -16,7 +16,7 @@ void task_add(struct TASK *task) {
   struct TASKLEVEL *tl = &taskctl->level[task->level];
   tl->tasks[tl->running] = task;
   tl->running++;
-  task->flags = 2;
+  task->flags = 2; 
   return;
 }
 
@@ -30,33 +30,41 @@ void task_remove(struct TASK *task) {
 
   tl->running--;
   if (i < tl->now) {
-    tl->now--;
+    tl->now--; 
   }
   if (tl->now >= tl->running) {
     tl->now = 0;
   }
-  task->flags = 1; // Sleep
+  task->flags = 1; 
 
   for (; i < tl->running; i++) {
     tl->tasks[i] = tl->tasks[i + 1];
   }
+
   return;
 }
 
 void task_switchsub(void) {
   int i;
   for (i = 0; i < MAX_TASKLEVELS; i++) {
-    if (taskctl->level[i].running > 0) break; 
+    if (taskctl->level[i].running > 0) break;
   }
   taskctl->now_lv = i;
   taskctl->lv_change = 0;
   return;
 }
 
+void task_idle(void) {
+  for (;;) {
+    io_hlt();
+  }
+}
+
 struct TASK *task_init(struct MEMMAN *memman) {
   int i;
   struct TASK *task, *idle;
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
+
   taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof (struct TASKCTL));
   for (i = 0; i < MAX_TASKS; i++) {
     taskctl->tasks0[i].flags = 0;
@@ -67,12 +75,13 @@ struct TASK *task_init(struct MEMMAN *memman) {
     taskctl->level[i].running = 0;
     taskctl->level[i].now = 0;
   }
+
   task = task_alloc();
-  task->flags = 2;
-  task->priority = 2;
-  task->level = 0;
+  task->flags = 2;	
+  task->priority = 2; 
+  task->level = 0;	
   task_add(task);
-  task_switchsub();
+  task_switchsub();	
   load_tr(task->sel);
   task_timer = timer_alloc();
   timer_settime(task_timer, task->priority);
@@ -97,8 +106,8 @@ struct TASK *task_alloc(void) {
     if (taskctl->tasks0[i].flags == 0) {
       task = &taskctl->tasks0[i];
       task->flags = 1; 
-      task->tss.eflags = 0x00000202; // IF = 1
-      task->tss.eax = 0;
+      task->tss.eflags = 0x00000202; // IF = 1 
+      task->tss.eax = 0; 
       task->tss.ecx = 0;
       task->tss.edx = 0;
       task->tss.ebx = 0;
@@ -114,7 +123,7 @@ struct TASK *task_alloc(void) {
       return task;
     }
   }
-  return 0;
+  return 0; 
 }
 
 void task_run(struct TASK *task, int level, int priority) {
@@ -125,7 +134,7 @@ void task_run(struct TASK *task, int level, int priority) {
     task->priority = priority;
   }
 
-  if (task->flags == 2 && task->level != level) {
+  if (task->flags == 2 && task->level != level) { 
     task_remove(task); 
   }
   if (task->flags != 2) {
@@ -133,7 +142,21 @@ void task_run(struct TASK *task, int level, int priority) {
     task_add(task);
   }
 
-  taskctl->lv_change = 1;
+  taskctl->lv_change = 1; 
+  return;
+}
+
+void task_sleep(struct TASK *task) {
+  struct TASK *now_task;
+  if (task->flags == 2) {
+    now_task = task_now();
+    task_remove(task); 
+    if (task == now_task) {
+      task_switchsub();
+      now_task = task_now(); 
+      farjmp(0, now_task->sel);
+    }
+  }
   return;
 }
 
@@ -156,22 +179,3 @@ void task_switch(void) {
   return;
 }
 
-void task_sleep(struct TASK *task) {
-  struct TASK *now_task;
-  if (task->flags == 2) {
-    now_task = task_now();
-    task_remove(task); 
-    if (task == now_task) {
-      task_switchsub();
-      now_task = task_now(); 
-      farjmp(0, now_task->sel);
-    }
-  }
-  return;
-}
-
-void task_idle(void) {
-  for (;;) {
-    io_hlt();
-  }
-}
