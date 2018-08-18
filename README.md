@@ -32,6 +32,18 @@ $ make run
 gdb -ex 'target remote localhost:1234'
 ```
 
+
+### How to find breakpoint
+
+```
+$ gdb ./a.out
+gpb> p <function_name>
+
+OR
+
+$ objdump -d a.out | grep -C 20 <function_name>
+```
+
 ### Examples of usage
 ```
 (gdb) b *0x7x00 // Create break point to the beginning of IPL
