@@ -3,6 +3,8 @@ A haribote OS. Just run it by `$ make run`.
 
 
 ## Debug
+TODO: gdb-peda
+
 
 ### Start GDB
 ```
@@ -58,21 +60,19 @@ https://speakerdeck.com/yuyabu/gong-kai-yong
 
 
 ## Memory maps
-ipl10.nas 終了時
-アドレス	内容
-0x07C00ー0x07DFF	IPL。フロッピーの先頭１セクタ（ブートセクタ）
-0x08200ー0x34FFF	フロッピーの内容（10シリンダ分。IPLを除く）
+ipl10.nas 終了時  
+0x07C00ー0x07DFF: IPL。フロッピーの先頭１セクタ（ブートセクタ）  
+0x08200ー0x34FFF: フロッピーの内容（10シリンダ分。IPLを除く）  
 
-OS実行時
-アドレス	内容
-0x00000000ー0x000FFFFF	起動中にいろいろ使うけど、その後は空き(1MB)
-0x00100000ー0x00267FFF	FDの内容記憶用(1440KB)
-0x00268000ー0x0026F7FF	空き(30KB)
-0x0026F800ー0x0026FFFF	IDT(2KB)
-0x00270000ー0x0027FFFF	GDT(64KB)
-0x00280000ー0x002FFFFF	bootpack.hrb(512KB)
-0x00300000ー0x003FFFFF	スタックなど(1MB)
-0x00400000ー	空き
+OS実行時  
+0x00000000ー0x000FFFFF: 起動中にいろいろ使うけど、その後は空き(1MB)  
+0x00100000ー0x00267FFF: FDの内容記憶用(1440KB)  
+0x00268000ー0x0026F7FF: 空き(30KB)  
+0x0026F800ー0x0026FFFF: IDT(2KB)  
+0x00270000ー0x0027FFFF: GDT(64KB)  
+0x00280000ー0x002FFFFF: bootpack.hrb(512KB)  
+0x00300000ー0x003FFFFF: スタックなど(1MB)  
+0x00400000ー: 空き  
 
 
 ## Dependencies
