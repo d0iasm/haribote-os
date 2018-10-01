@@ -108,7 +108,7 @@ void hari_main(void) {
   struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
   struct TASK *task_a, *task_cons;
   struct TIMER *timer;
-  int key_to = 0;
+  int key_to = 0, key_shift = 0;
 
   init_gdtidt();
   init_pic();
@@ -200,16 +200,24 @@ void hari_main(void) {
       if (256 <= i && i <= 511) { // keyboard data 
         tsprintf(s, "%x", i - 256);
         putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-        if (i < 0x54 + 256 && keytable[i - 256] != 0) { // normal character
+        if (i < 0x80 + 256) { // convert keycode to char code
+          if (key_shift == 0) {
+            s[0] = keytable0[i - 256];
+          } else {
+            s[0] = keytable1[i - 256];
+          }
+        } else {
+          s[0] = 0;
+        }
+        if (s[0] != 0) { // normal character
           if (key_to == 0) { // task A
             if (cursor_x < 128) {
-              s[0] = keytable[i - 256];
               s[1] = 0;
               putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
               cursor_x += 8;
             }
           } else {	
-            fifo32_put(&task_cons->fifo, keytable[i - 256] + 256);
+            fifo32_put(&task_cons->fifo, s[0] + 256);
           }
         }
 
@@ -236,6 +244,19 @@ void hari_main(void) {
           sheet_refresh(sht_win,  0, 0, sht_win->bxsize,  21);
           sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
         }
+        if (i == 256 + 0x2a) { // left shift ON
+          key_shift |= 1;
+        }
+        if (i == 256 + 0x36) { // right shift ON
+          key_shift |= 2;
+        }
+        if (i == 256 + 0xaa) { // left shift OFF
+          key_shift &= ~1;
+        }
+        if (i == 256 + 0xb6) { // right shift OFF
+          key_shift &= ~2;
+        }
+        
         boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
         sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
 
