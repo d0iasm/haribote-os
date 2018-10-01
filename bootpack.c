@@ -108,7 +108,7 @@ void hari_main(void) {
   struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
   struct TASK *task_a, *task_cons;
   struct TIMER *timer;
-  int key_to = 0, key_shift = 0;
+  int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
   init_gdtidt();
   init_pic();
@@ -203,12 +203,16 @@ void hari_main(void) {
         if (i < 0x80 + 256) { // convert keycode to char code
           if (key_shift == 0) {
             s[0] = keytable0[i - 256];
+            if ('A' <= s[0] && s[0] <= 'Z') {
+              s[0] += 0x20;
+            }
           } else {
             s[0] = keytable1[i - 256];
           }
         } else {
           s[0] = 0;
         }
+
         if (s[0] != 0) { // normal character
           if (key_to == 0) { // task A
             if (cursor_x < 128) {
