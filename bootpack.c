@@ -43,7 +43,7 @@ void task_b_main(struct SHEET *sht) {
 void console_task(struct SHEET *sheet) {
   struct TIMER *timer;
   struct TASK *task = task_now();
-  int i, fifobuf[128], cursor_x = 16, cursor_c = COL8_000000;
+  int i, fifobuf[128], cursor_x = 16, cursor_c = -1;
   char s[2];
 
   fifo32_init(&task->fifo, 128, fifobuf, task);
@@ -61,23 +61,35 @@ void console_task(struct SHEET *sheet) {
     } else {
       i = fifo32_get(&task->fifo);
       io_sti();
-      if (i <= 1) { 
+      if (i <= 1) { // timer for cursor
         if (i != 0) {
-          timer_init(timer, &task->fifo, 0); 
-          cursor_c = COL8_FFFFFF;
+          timer_init(timer, &task->fifo, 0);
+          if (cursor_c >= 0) {
+            cursor_c = COL8_FFFFFF;
+          }
         } else {
           timer_init(timer, &task->fifo, 1);
-          cursor_c = COL8_000000;
+          if (cursor_c >= 0) {
+            cursor_c = COL8_000000;
+          }
         }
         timer_settime(timer, 50);
       }
-      if (256 <= i && i <= 511) { 
-        if (i == 8 + 256) {
+      if (i == 2) { // cursor ON
+        cursor_c = COL8_FFFFFF;
+      }
+      if (i == 3) {
+        boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, 28, cursor_x + 7, 43);
+        cursor_c = -1;
+      }
+
+      if (256 <= i && i <= 511) { // keyboard data through task A
+        if (i == 8 + 256) { // back space
           if (cursor_x > 16) {
             putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
             cursor_x -= 8;
           }
-        } else {
+        } else { // normal characters
           if (cursor_x < 240) {
             s[0] = i - 256;
             s[1] = 0;
@@ -86,7 +98,9 @@ void console_task(struct SHEET *sheet) {
           }
         }
       }
-      boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+      if (cursor_c >= 0) {
+        boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+      }
       sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
     }
   }
@@ -242,11 +256,13 @@ void hari_main(void) {
             make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
             cursor_c = -1; // unvisible cursor
             boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43);
+            fifo32_put(&task_cons->fifo, 2);
           } else {
             key_to = 0;
             make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  1);
             make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
             cursor_c = COL8_000000;
+            fifo32_put(&task_cons->fifo, 3);
           }
           sheet_refresh(sht_win,  0, 0, sht_win->bxsize,  21);
           sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
