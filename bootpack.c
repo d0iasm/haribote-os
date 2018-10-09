@@ -240,7 +240,7 @@ void hari_main(void) {
             key_to = 1;
             make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  0);
             make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
-            cursor_x = -1; // unvisible cursor
+            cursor_c = -1; // unvisible cursor
             boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43);
           } else {
             key_to = 0;
