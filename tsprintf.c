@@ -10,7 +10,7 @@ int tsprintf(char *str, const char *fmt, ...) {
   const char *p = fmt;// コピー元フォーマットを走査する
 
   strcls(str);
-  strcls(buf);	// バッファの初期化
+  strcls(buf);
   for(cnt = 0; *p != '\0'; p++) {
     switch(*p) {
       case '%':
@@ -40,9 +40,9 @@ int tsprintf(char *str, const char *fmt, ...) {
   return cnt;
 }
 
-// ヌル文字で埋める
 void strcls(char *str) {
-  while(*str != '\0') *str++ = '\0';
+  // TODO: How to clear a char array
+  while(*str != '\0') *str++ = ' ';
 }
 
 // ASCIIコードを文字に変換する
