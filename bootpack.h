@@ -207,6 +207,11 @@ void init_keyboard(struct FIFO32 *fifo, int data0);
 /* -- keyboard.c end -- */
 
 
+/* -- libs.c start -- */
+int strcmp(char *s1, char *s2);
+/* -- libs.c end -- */
+
+
 /* -- mouse.c start -- */
 #define MOUSECMD_ENABLE 0xf4
 #define KEYCMD_SENDTO_MOUSE 0xd4

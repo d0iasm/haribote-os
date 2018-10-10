@@ -9,7 +9,7 @@ LD = ld -m elf_i386 -T os.ls
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda  
-FILES = bootpack.o commands.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o
+FILES = bootpack.o commands.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o libs.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o
 
 # Commands
 default:
