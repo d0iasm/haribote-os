@@ -3,6 +3,13 @@
 #include "bootpack.h"
 
 
+struct FILEINFO {
+  unsigned char name[8], ext[3], type;
+  char reserve[10];
+  unsigned short time, data, clustno;
+  unsigned int size;
+};
+
 void task_b_main(struct SHEET *sht) {
   struct FIFO32 fifo;
   struct TIMER *timer_1s;
@@ -40,6 +47,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
   int x, y;
   char s[30], cmdline[30];
   struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+  struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
 
   fifo32_init(&task->fifo, 128, fifobuf, task);
   timer = timer_alloc();
@@ -97,7 +105,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
             putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
             cursor_y = cons_newline(cursor_y, sheet);
             cursor_y = cons_newline(cursor_y, sheet);
-          } else if (strcmp(cmdline, "clear") == 0) { // command 'cls'
+          } else if (strcmp(cmdline, "clear") == 0) { // command 'clear'
             for (y = 28; y < 28 + 128; y++) {
               for (x = 8; x < 8 + 240; x++) {
                 sheet->buf[x + y * sheet->bxsize] = COL8_000000;
@@ -105,6 +113,29 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
             }
             sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
             cursor_y = 28;
+          } else if (strcmp(cmdline, "dir") == 0) { // command 'ls'
+            for (x = 0; x < 224; x++) {
+              if (finfo[x].name[0] == 0x00) {
+                // TODO: Bug this statement is true 
+                tsprintf(s, "debug %d", 0);
+                putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
+                break;
+              }
+              if (finfo[x].name[0] != 0xe5) {
+                if ((finfo[x].type & 0x18) == 0) {
+                  tsprintf(s, "filename.ext %d", finfo[x].size);
+                  for (y = 0; y < 8; y++) {
+                    s[y] = finfo[x].name[y];
+                  }
+                  s[9] = finfo[x].ext[0];
+                  s[10] = finfo[x].ext[1];
+                  s[11] = finfo[x].ext[2];
+                  putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
+                  cursor_y = cons_newline(cursor_y, sheet);
+                }
+              }
+            }
+            cursor_y = cons_newline(cursor_y, sheet);
           } else if (cmdline[0] != 0) {
             putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "bad command", 12);
             cursor_y = cons_newline(cursor_y, sheet);

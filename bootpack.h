@@ -295,7 +295,8 @@ void farjmp(int eip, int cs);
 
 
 /* -- nasmhead.asm start --*/
-#define ADR_BOOTINFO	0x00000ff0
+#define ADR_BOOTINFO 0x00000ff0
+#define ADR_DISKIMG 0x00100000
 
 // A struct size is 9 bytes
 struct BOOTINFO { // 0x0ff0 ~ 0x0fff
