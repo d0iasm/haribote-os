@@ -9,6 +9,7 @@ LD = ld -m elf_i386 -T os.ls
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda  
+FILES = bootpack.o commands.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o
 
 # Commands
 default:
@@ -26,8 +27,8 @@ nasmhead.bin: nasmhead.asm
 nasmfunc.o: nasmfunc.asm
 	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
-bootpack.bin: bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o 
-	$(LD) -e hari_main -o bootpack.bin bootpack.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o 
+bootpack.bin: $(FILES)
+	$(LD) -e hari_main -o bootpack.bin $(FILES)
 
 os.sys: nasmhead.bin bootpack.bin
 	cat nasmhead.bin bootpack.bin > os.sys

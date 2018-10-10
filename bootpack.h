@@ -3,6 +3,68 @@
 #define _BOOTPACK_H_
 
 
+/* -- memory.c start -- */
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+#define MEMMAN_FREES 4090 // About 32kB
+#define MEMMAN_ADDR 0x003c0000
+
+struct FREEINFO {
+  unsigned int addr, size;
+};
+
+// struct MEMMAN should be defined before shtctl_init().
+struct MEMMAN {
+  int frees, maxfrees, lostsize, losts;
+  struct FREEINFO free[MEMMAN_FREES];
+};
+
+unsigned int memtest(unsigned int start, unsigned int end);
+unsigned int memtest_sub(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+/* -- meomry.c end -- */
+
+
+/* -- sheet.c start --*/
+#define MAX_SHEETS 256
+#define SHEET_USE 1
+
+// struct SHEET should be defined before cons_newline().
+struct SHEET {
+  unsigned char *buf;
+  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+  struct SHTCTL *ctl;
+};
+
+struct SHTCTL { // sheet control
+  unsigned char *vram, *map;
+  int xsize, ysize, top;
+  struct SHEET *sheets[MAX_SHEETS];
+  struct SHEET sheets0[MAX_SHEETS];
+};
+
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl);
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
+void sheet_updown(struct SHEET *sht, int height);
+void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1);
+void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0, int h1);
+void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);
+void sheet_slide(struct SHEET *sht, int vx0, int vy0);
+void sheet_free(struct SHEET *sht);
+/* -- sheet.c end --*/
+
+
+/* -- commands.c start -- */
+int cons_newline(int cursor_y, struct SHEET *sheet);
+/* -- commands.c end -- */
+
+
 /* -- dsctbl.c start -- */
 #define ADR_IDT 0x0026f800
 #define LIMIT_IDT 0x000007ff
@@ -78,9 +140,13 @@ void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, i
 void init_screen8(char *vram, int x, int y);
 void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
     int pysize, int px0, int py0, char *buf, int bxsize);
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char act);
+void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 /* -- graphic.c end -- */
 
 
@@ -139,32 +205,6 @@ void inthandler21(int *esp);
 void wait_KBC_sendready(void);
 void init_keyboard(struct FIFO32 *fifo, int data0);
 /* -- keyboard.c end -- */
-
-
-/* -- memory.c start -- */
-#define EFLAGS_AC_BIT 0x00040000
-#define CR0_CACHE_DISABLE 0x60000000
-#define MEMMAN_FREES 4090 // About 32kB
-#define MEMMAN_ADDR 0x003c0000
-
-struct FREEINFO {
-  unsigned int addr, size;
-};
-
-struct MEMMAN {
-  int frees, maxfrees, lostsize, losts;
-  struct FREEINFO free[MEMMAN_FREES];
-};
-
-unsigned int memtest(unsigned int start, unsigned int end);
-unsigned int memtest_sub(unsigned int start, unsigned int end);
-void memman_init(struct MEMMAN *man);
-unsigned int memman_total(struct MEMMAN *man);
-unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
-unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
-int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
-int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
-/* -- meomry.c end -- */
 
 
 /* -- mouse.c start -- */
@@ -262,35 +302,6 @@ struct BOOTINFO { // 0x0ff0 ~ 0x0fff
   char *vram;
 };
 /* -- nasmhead.asm end --*/
-
-
-/* -- sheet.c start --*/
-#define MAX_SHEETS 256
-#define SHEET_USE 1
-
-struct SHEET {
-  unsigned char *buf;
-  int bxsize, bysize, vx0, vy0, col_inv, height, flags;
-  struct SHTCTL *ctl;
-};
-
-struct SHTCTL { // sheet control
-  unsigned char *vram, *map;
-  int xsize, ysize, top;
-  struct SHEET *sheets[MAX_SHEETS];
-  struct SHEET sheets0[MAX_SHEETS];
-};
-
-struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
-struct SHEET *sheet_alloc(struct SHTCTL *ctl);
-void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
-void sheet_updown(struct SHEET *sht, int height);
-void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1);
-void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0, int h1);
-void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);
-void sheet_slide(struct SHEET *sht, int vx0, int vy0);
-void sheet_free(struct SHEET *sht);
-/* -- sheet.c end --*/
 
 
 /* -- timer.c start --*/
