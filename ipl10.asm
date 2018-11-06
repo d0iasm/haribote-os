@@ -1,4 +1,4 @@
-; minimumos.asm
+; ipl10.asm
 
   CYLS EQU 10
   ORG 0x7c00 ; The place of a memory to read at first
@@ -6,7 +6,7 @@
   ; Discription for FAT12 format
   JMP entry
   DB 0x90
-  DB "HELLOIPL"
+  DB "HARIBOTE"
   DW 512 ; Size of a sector
   DB 1
   DW 1
@@ -26,7 +26,7 @@
   DB 0x29
 
   DD 0xffffffff
-  DB "MINIMUM-OS " ; Disk name 11 byte
+  DB "HARIBOTEOS " ; Disk name 11 byte
   DB "FAT12   " ; Format name 8 byte
   RESB 18
 
@@ -108,7 +108,7 @@ msg:
   DB 0x0a
   DB 0
 
-  RESB 0x7dfe - 0x7c00 - ($ - $$) 
+  RESB 0x7dfe - 0x7c00 - ($ - $$) ; Fill 0 from current position to 0x1fd 
 
   DB 0x55, 0xaa
 
