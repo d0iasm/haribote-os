@@ -115,12 +115,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
             cursor_y = 28;
           } else if (strcmp(cmdline, "ls") == 0) { // command 'ls'
             for (x = 0; x < 224; x++) {
-              if (finfo[x].name[0] == 0x00) {
-                // TODO: Bug this statement is true 
-                tsprintf(s, "debug %d", 0);
-                putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-                break;
-              }
+              if (finfo[x].name[0] == 0x00) { break; }
               if (finfo[x].name[0] != 0xe5) {
                 if ((finfo[x].type & 0x18) == 0) {
                   tsprintf(s, "filename.ext %d", finfo[x].size);

@@ -130,6 +130,7 @@ pipelineflush:
   MOV CL, BYTE [CYLS]
   IMUL ECX, 512*18*2/4 ; To convert from number of cylinders to bite/4
   SUB ECX, 512/4 ; Minus IPL
+  CALL memcpy
   ; Fin asmhead
 
   ; Start bootpack
