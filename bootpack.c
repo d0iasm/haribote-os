@@ -45,7 +45,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
   int i, fifobuf[128];
   int cursor_x = 16, cursor_y = 28, cursor_c = -1;
   int x, y;
-  char s[30], cmdline[30];
+  char s[30], cmdline[30], *p;
   struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
   struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
 
@@ -129,6 +129,63 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
                   cursor_y = cons_newline(cursor_y, sheet);
                 }
               }
+            }
+            cursor_y = cons_newline(cursor_y, sheet);
+          } else if (cmdline[0] == 'c' && cmdline[1] == 'a' && cmdline[2] == 't' && cmdline[3] == ' ') { // command 'cat <file name>'
+            for (y = 0; y < 11; y++) {
+              s[y] = ' ';
+            }
+            y = 0;
+            for (x = 5; y < 11 && cmdline[x] != 0; x++) {
+              if (cmdline[x] == '.' && y <= 8) {
+                y = 8;
+              } else {
+                s[y] = cmdline[x];
+                if ('a' <= s[y] && s[y] <= 'z') {
+                  s[y] -= 0x20; // Convert from lowercase to uppercase
+                }
+                y++;
+              }
+            }
+            for (x = 0; x < 224; ) { // Search the file
+              if (finfo[x].name[0] == 0x00) { break; }
+              if ((finfo[x].type & 0x18) == 0) {
+                for (y = 0; y < 11; y++) {
+                  if (finfo[x].name[y] != s[y]) {
+                    goto type_next_file;
+                  }
+                }
+                break; // Found the file
+              }
+type_next_file:
+              x++;
+            }
+            // -------------------------------------------------
+            // TODO: Not be able to find the file because
+            // |x| always indicates the last file number.
+            tsprintf(s, "File NO. %d", x);
+            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 15);
+            cursor_y = cons_newline(cursor_y, sheet);
+            // -------------------------------------------------
+            if (x < 224 && finfo[x].name[0] != 0x00) {
+              // If find the file
+              y = finfo[x].size;
+              p = (char *) (finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG);
+              cursor_x = 8;
+              for (x = 0; x < y; x++) {
+                s[0] = p[x];
+                s[1] = 0;
+                putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+                cursor_x += 8;
+                if (cursor_x == 8 + 240) { // Insert a new line
+                  cursor_x = 8;
+                  cursor_y = cons_newline(cursor_y, sheet);
+                }
+              }
+            } else {
+              // If don't find the file
+              putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
+              cursor_y = cons_newline(cursor_y, sheet);
             }
             cursor_y = cons_newline(cursor_y, sheet);
           } else if (cmdline[0] != 0) {
