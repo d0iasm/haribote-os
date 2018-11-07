@@ -24,7 +24,7 @@ $ qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -d cpu_rese
 
 Disassemble
 ```
-$ objdump -D -Mintel i386 -m i386 -b binary os.img > os.txt
+$ objdump -D -m i386 -b binary os.img > os.txt
 ```
 
 GDB
