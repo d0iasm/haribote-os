@@ -168,11 +168,32 @@ type_next_file:
               for (x = 0; x < y; x++) {
                 s[0] = p[x];
                 s[1] = 0;
-                putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
-                cursor_x += 8;
-                if (cursor_x == 8 + 240) { // Insert a new line
+                if (s[0] == 0x09) { // Tab.
+                  for (;;) {
+                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
+                    cursor_x += 8;
+                    if (cursor_x == 8 + 240) {
+                      cursor_x = 8;
+                      cursor_y = cons_newline(cursor_y, sheet);
+                    }
+                    if (((cursor_x - 8) & 0x1f) == 0) {
+                      // Break when the number can be divided by 32 because
+                      // 4(spaces per one tab) * 8(the width per one char).
+                      break;
+                    }
+                  }
+                } else if (s[0] == 0x0a) { // New line.
                   cursor_x = 8;
                   cursor_y = cons_newline(cursor_y, sheet);
+                } else if (s[0] == 0x0d) { // Carriage return.
+                  // TODO: Implement it later.
+                } else { // Normal chars.
+                  putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+                  cursor_x += 8;
+                  if (cursor_x == 8 + 240) { // Insert a new line
+                    cursor_x = 8;
+                    cursor_y = cons_newline(cursor_y, sheet);
+                  }
                 }
               }
             } else {
