@@ -136,7 +136,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
               s[y] = ' ';
             }
             y = 0;
-            for (x = 5; y < 11 && cmdline[x] != 0; x++) {
+            for (x = 4; y < 11 && cmdline[x] != 0; x++) {
               if (cmdline[x] == '.' && y <= 8) {
                 y = 8;
               } else {
@@ -160,13 +160,6 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
 type_next_file:
               x++;
             }
-            // -------------------------------------------------
-            // TODO: Not be able to find the file because
-            // |x| always indicates the last file number.
-            tsprintf(s, "File NO. %d", x);
-            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 15);
-            cursor_y = cons_newline(cursor_y, sheet);
-            // -------------------------------------------------
             if (x < 224 && finfo[x].name[0] != 0x00) {
               // If find the file
               y = finfo[x].size;
