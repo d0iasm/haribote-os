@@ -209,6 +209,7 @@ void init_keyboard(struct FIFO32 *fifo, int data0);
 
 /* -- libs.c start -- */
 int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, const int n);
 /* -- libs.c end -- */
 
 

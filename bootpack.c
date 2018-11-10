@@ -138,7 +138,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
               }
             }
             cursor_y = cons_newline(cursor_y, sheet);
-          } else if (cmdline[0] == 'c' && cmdline[1] == 'a' && cmdline[2] == 't' && cmdline[3] == ' ') { // command 'cat <file name>'
+          } else if (strncmp(cmdline, "cat ", 4)) { // command 'cat <file name>'
             for (y = 0; y < 11; y++) {
               s[y] = ' ';
             }
