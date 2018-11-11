@@ -1,4 +1,4 @@
-  ; hlt.asm : A minimum application just to stop the computer.
+  ; hlt.asm : A minimum application just to disable interruption.
   bits 32
   CLI
 

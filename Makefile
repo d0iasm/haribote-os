@@ -19,6 +19,9 @@ default:
 %.o: %.c
 	$(GCC) -o $*.o $*.c
 
+apps:
+	$(NASM) -o hlt.bin hlt.asm
+
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
 
