@@ -60,9 +60,10 @@ void sheet_free(struct SHEET *sht);
 /* -- sheet.c end --*/
 
 
-/* -- commands.c start -- */
+/* -- console.c start -- */
+void console_task(struct SHEET *sheet, unsigned int memtotal);
 int cons_newline(int cursor_y, struct SHEET *sheet);
-/* -- commands.c end -- */
+/* -- console.c end -- */
 
 
 /* -- dsctbl.c start -- */
@@ -116,6 +117,19 @@ int fifo32_status(struct FIFO32 *fifo);
 /* -- fifo.c end -- */
 
 
+/* -- file.c start -- */
+struct FILEINFO {
+  unsigned char name[8], ext[3], type;
+  char reserve[10];
+  unsigned short time, data, clustno;
+  unsigned int size;
+};
+
+void file_readfat(int *fat, unsigned char *img);
+void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
+/* -- file.c end -- */
+
+
 /* -- graphic.c start -- */
 #define COL8_000000 0
 #define COL8_FF0000 1
@@ -144,9 +158,6 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, i
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
     int pysize, int px0, int py0, char *buf, int bxsize);
-void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char act);
-void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
-void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 /* -- graphic.c end -- */
 
 
@@ -352,5 +363,12 @@ void int2dec(char *, int);
 void int2str(char *, int);
 void int2float(char *, int);
 /* -- tsprintf.c end --*/
+
+
+/* -- window.c start --*/
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char act);
+void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
+/* -- window.c end --*/
 
 #endif // _BOOTPACK_H

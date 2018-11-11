@@ -9,7 +9,7 @@ LD = ld -m elf_i386 -T os.ls
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda  
-FILES = bootpack.o commands.o dsctbl.o fifo.o graphic.o hankaku.o int.o keyboard.o libs.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o
+FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o hankaku.o int.o keyboard.o libs.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o window.o
 
 
 # Commands
@@ -44,6 +44,7 @@ os.sys: nasmhead.bin bootpack.bin
 os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B ipl10.bin -i os.img ::
 	mcopy -i os.img os.sys ::
+	mcopy -i os.img hoge.txt ::
 	mcopy -i os.img README.md ::
 	mcopy -i os.img Makefile ::
 
