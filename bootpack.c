@@ -250,7 +250,7 @@ void file_loadfile(int clustno, int size, char *buf, int *fat, char *img) {
   int i;
   for (;;) {
     if (size <= 512) {
-      for (i = 0; i< size; i++) {
+      for (i = 0; i < size; i++) {
         buf[i] = img[clustno * 512 + i];
       }
       break;
@@ -258,14 +258,12 @@ void file_loadfile(int clustno, int size, char *buf, int *fat, char *img) {
     for (i = 0; i < 512; i++) {
       buf[i] = img[clustno * 512 + i];
     }
-
     size -= 512;
-    buf += 2;
+    buf += 512;
     clustno = fat[clustno];
   }
   return;
 }
-
 
 void hari_main(void) {
   struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
