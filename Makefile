@@ -47,6 +47,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img hoge.txt ::
 	mcopy -i os.img README.md ::
 	mcopy -i os.img Makefile ::
+	mcopy -i os.img hlt.bin :: 
 
 run: os.img
 	$(QEMU) os.img
