@@ -5,23 +5,23 @@
 void console_task(struct SHEET *sheet, unsigned int memtotal) {
   struct TIMER *timer;
   struct TASK *task = task_now();
-  int i, fifobuf[128];
-  int cursor_x = 16, cursor_y = 28, cursor_c = -1;
-  int x, y;
-  char s[30], cmdline[30], *p;
   struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-  struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
-  int *fat = (int *) memman_alloc_4k(memman, 4 * 2880);
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-
-  file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
+  int i, fifobuf[128], *fat = (int *) memman_alloc_4k(memman, 4 * 2880);
+  struct CONSOLE cons;
+  char cmdline[30];
+  cons.sht = sheet;
+  cons.cur_x =  8;
+  cons.cur_y = 28;
+  cons.cur_c = -1;
 
   fifo32_init(&task->fifo, 128, fifobuf, task);
   timer = timer_alloc();
   timer_init(timer, &task->fifo, 1);
   timer_settime(timer, 50);
+  file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
 
-  putfonts8_asc_sht(sheet, 8, 28, COL8_FFFFFF, COL8_000000, ">", 1);
+  // Show a prompt.
+  cons_putchar(&cons, '>', 1);
 
   for (;;) {
     io_cli();
@@ -31,214 +31,101 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     } else {
       i = fifo32_get(&task->fifo);
       io_sti();
-      if (i <= 1) { // timer for cursor
+      if (i <= 1) { // Timer for a cursor.
         if (i != 0) {
-          timer_init(timer, &task->fifo, 0);
-          if (cursor_c >= 0) {
-            cursor_c = COL8_FFFFFF;
+          timer_init(timer, &task->fifo, 0); // Next is 0.
+          if (cons.cur_c >= 0) {
+            cons.cur_c = COL8_FFFFFF;
           }
         } else {
-          timer_init(timer, &task->fifo, 1);
-          if (cursor_c >= 0) {
-            cursor_c = COL8_000000;
+          timer_init(timer, &task->fifo, 1); // Next is 1.
+          if (cons.cur_c >= 0) {
+            cons.cur_c = COL8_000000;
           }
         }
         timer_settime(timer, 50);
       }
-      if (i == 2) { // cursor ON
-        cursor_c = COL8_FFFFFF;
+      if (i == 2) { // Make a cursor ON. 
+        cons.cur_c = COL8_FFFFFF;
       }
-      if (i == 3) {
-        boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, 28, cursor_x + 7, 43);
-        cursor_c = -1;
+      if (i == 3) { // Make a cursor OFF.
+        boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+        cons.cur_c = -1;
       }
-
-      if (256 <= i && i <= 511) { // keyboard data through task A
-        if (i == 8 + 256) { // back space
-          if (cursor_x > 16) {
-            putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
-            cursor_x -= 8;
+      if (256 <= i && i <= 511) { // Keyboard data through task A. 
+        if (i == 8 + 256) {
+          // Backspace.
+          if (cons.cur_x > 16) {
+            // Move a cursor back one after it's hiddden by white spaces.
+            cons_putchar(&cons, ' ', 0);
+            cons.cur_x -= 8;
           }
-        } else if (i == 10 + 256) { // enter
-          putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
-          cmdline[cursor_x / 8 - 2] = 0;
-          cursor_y = cons_newline(cursor_y, sheet);
-
-          if (strcmp(cmdline, "mem") == 0) { // command 'mem'
-            tsprintf(s, "total %d MB", memtotal / (1024 * 1024));
-            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-            cursor_y = cons_newline(cursor_y, sheet);
-            tsprintf(s, "free %d KB", memman_total(memman) / 1024);
-            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-            cursor_y = cons_newline(cursor_y, sheet);
-            cursor_y = cons_newline(cursor_y, sheet);
-          } else if (strcmp(cmdline, "clear") == 0) { // command 'clear'
-            for (y = 28; y < 28 + 128; y++) {
-              for (x = 8; x < 8 + 240; x++) {
-                sheet->buf[x + y * sheet->bxsize] = COL8_000000;
-              }
-            }
-            sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
-            cursor_y = 28;
-          } else if (strcmp(cmdline, "ls") == 0) { // command 'ls'
-            for (x = 0; x < 224; x++) {
-              if (finfo[x].name[0] == 0x00) { break; }
-              if (finfo[x].name[0] != 0xe5) {
-                if ((finfo[x].type & 0x18) == 0) {
-                  tsprintf(s, "filename.ext %d", finfo[x].size);
-                  for (y = 0; y < 8; y++) {
-                    s[y] = finfo[x].name[y];
-                  }
-                  s[9] = finfo[x].ext[0];
-                  s[10] = finfo[x].ext[1];
-                  s[11] = finfo[x].ext[2];
-                  putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-                  cursor_y = cons_newline(cursor_y, sheet);
-                }
-              }
-            }
-            cursor_y = cons_newline(cursor_y, sheet);
-          } else if (strncmp(cmdline, "cat ", 4) == 0) {
-            // command 'cat <file name>'
-            for (y = 0; y < 11; y++) {
-              s[y] = ' ';
-            }
-            y = 0;
-            for (x = 4; y < 11 && cmdline[x] != 0; x++) {
-              if (cmdline[x] == '.' && y <= 8) {
-                y = 8;
-              } else {
-                s[y] = cmdline[x];
-                if ('a' <= s[y] && s[y] <= 'z') {
-                  s[y] -= 0x20; // Convert from lowercase to uppercase
-                }
-                y++;
-              }
-            }
-            for (x = 0; x < 224; ) { // Search the file
-              if (finfo[x].name[0] == 0x00) { break; }
-              if ((finfo[x].type & 0x18) == 0) {
-                for (y = 0; y < 11; y++) {
-                  if (finfo[x].name[y] != s[y]) {
-                    goto cat_next_file;
-                  }
-                }
-                break; // Found the file
-              }
-cat_next_file:
-              x++;
-            }
-            if (x < 224 && finfo[x].name[0] != 0x00) {
-              // When a file is found.
-              p = (char *) memman_alloc_4k(memman, finfo[x].size);
-              file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-              cursor_x = 8;
-              for (y = 0; y < finfo[x].size; y++) {
-                s[0] = p[y];
-                s[1] = 0;
-                if (s[0] == 0x09) { // Tab.
-                  for (;;) {
-                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
-                    cursor_x += 8;
-                    if (cursor_x == 8 + 240) {
-                      cursor_x = 8;
-                      cursor_y = cons_newline(cursor_y, sheet);
-                    }
-                    if (((cursor_x - 8) & 0x1f) == 0) {
-                      // Break when the number can be divided by 32 because
-                      // 4(spaces per one tab) * 8(the width per one char).
-                      break;
-                    }
-                  }
-                } else if (s[0] == 0x0a) { // New line.
-                  cursor_x = 8;
-                  cursor_y = cons_newline(cursor_y, sheet);
-                } else if (s[0] == 0x0d) { // Carriage return.
-                  // TODO: Implement it later.
-                } else { // Normal chars.
-                  putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
-                  cursor_x += 8;
-                  if (cursor_x == 8 + 240) { // Insert a new line
-                    cursor_x = 8;
-                    cursor_y = cons_newline(cursor_y, sheet);
-                  }
-                }
-              }
-              memman_free_4k(memman, (int) p, finfo[x].size);
-            } else {
-              // When a file is not found.
-              putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
-              cursor_y = cons_newline(cursor_y, sheet);
-            }
-            cursor_y = cons_newline(cursor_y, sheet);
-          } else if (strcmp(cmdline, "hlt") == 0) { // Command 'hlt'.
-            for (y = 0; y < 11; y++) {
-              s[y] = ' ';
-            }
-            s[0] = 'H';
-            s[1] = 'L';
-            s[2] = 'T';
-            s[8] = 'B';
-            s[9] = 'I';
-            s[10] = 'N';
-            for (x = 0; x < 224; ) {
-              if (finfo[x].name[0] == 0x00) { break; }
-              if ((finfo[x].type & 0x18) == 0) {
-                for (y = 0; y < 11; y++) {
-                  if (finfo[x].name[y] != s[y]) {
-                    goto hlt_next_file;
-                  }
-                }
-                break; // Found a file.
-              }
-hlt_next_file:
-              x++;
-            }
-            if (x < 224 && finfo[x].name[0] != 0x00) {
-              // When a file is found.
-              p = (char *) memman_alloc_4k(memman, finfo[x].size);
-              file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-              set_segmdesc(gdt + 1003, finfo[x].size - 1, (int) p, AR_CODE32_ER);
-              farjmp(0, 1003 * 8);
-              memman_free_4k(memman, (int) p, finfo[x].size);
-            } else {
-              // When a file is not found.
-              putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
-              cursor_y = cons_newline(cursor_y, sheet);
-            }
-            cursor_y = cons_newline(cursor_y, sheet);
-          } else if (cmdline[0] != 0) {
-            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "Bad command.", 12);
-            cursor_y = cons_newline(cursor_y, sheet);
-            cursor_y = cons_newline(cursor_y, sheet);
-          }
-
-          putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
-          cursor_x = 16;
-        } else { // normal characters
-          if (cursor_x < 240) {
-            s[0] = i - 256;
-            s[1] = 0;
-            cmdline[cursor_x / 8 - 2] = i - 256;
-            putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
-            cursor_x += 8;
+        } else if (i == 10 + 256) {
+          // Enter.
+          // Insert a new line after a cursor is hidden by white spaces.
+          cons_putchar(&cons, ' ', 0);
+          cmdline[cons.cur_x / 8 - 2] = 0;
+          cons_newline(&cons);
+          // Execute a command.
+          cons_runcmd(cmdline, &cons, fat, memtotal);	
+          cons_putchar(&cons, '>', 1);
+        } else {
+          // Normal characters.
+          if (cons.cur_x < 240) {
+            // Move a cursor to the next position after one character shows.  
+            cmdline[cons.cur_x / 8 - 2] = i - 256;
+            cons_putchar(&cons, i - 256, 1);
           }
         }
       }
-      if (cursor_c >= 0) {
-        boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, cursor_y, cursor_x + 7, cursor_y + 15);
+      // Reshow a cursor.  
+      if (cons.cur_c >= 0) {
+        boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
       }
-      sheet_refresh(sheet, cursor_x, cursor_y, cursor_x + 8, cursor_y + 16);
+      sheet_refresh(sheet, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y + 16);
     }
   }
 }
 
-int cons_newline(int cursor_y, struct SHEET *sheet) {
+void cons_putchar(struct CONSOLE *cons, int chr, char move) {
+  char s[2];
+  s[0] = chr;
+  s[1] = 0;
+  if (s[0] == 0x09) { // Tab.
+    for (;;) {
+      putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
+      cons->cur_x += 8;
+      if (cons->cur_x == 8 + 240) {
+        cons_newline(cons);
+      }
+      if (((cons->cur_x - 8) & 0x1f) == 0) {
+        break; // Break when it is divisible by 32.	
+      }
+    }
+  } else if (s[0] == 0x0a) { // Insert a new line.
+    cons_newline(cons);
+  } else if (s[0] == 0x0d) { // Carriage return.
+    // TODO: Implement it later.
+  } else { // Normal characters.	
+    putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
+    if (move != 0) {
+      // Don't move a cursor when |move| equals 0.
+      cons->cur_x += 8;
+      if (cons->cur_x == 8 + 240) {
+        cons_newline(cons);
+      }
+    }
+  }
+  return;
+}
+
+void cons_newline(struct CONSOLE *cons) {
   int x, y;
-  if (cursor_y < 28 + 112) {
-    cursor_y += 16;
+  struct SHEET *sheet = cons->sht;
+  if (cons->cur_y < 28 + 112) {
+    cons->cur_y += 16; // Move to a next line. 
   } else {
-    // scroll
+    // Scroll.  
     for (y = 28; y < 28 + 112; y++) {
       for (x = 8; x < 8 + 240; x++) {
         sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
@@ -251,5 +138,122 @@ int cons_newline(int cursor_y, struct SHEET *sheet) {
     }
     sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
   }
-  return cursor_y;
+  cons->cur_x = 8;
+  return;
 }
+
+void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int memtotal) {
+  if (strcmp(cmdline, "mem") == 0) {
+    cmd_mem(cons, memtotal);
+  } else if (strcmp(cmdline, "cls") == 0) {
+    cmd_cls(cons);
+  } else if (strcmp(cmdline, "dir") == 0) {
+    cmd_dir(cons);
+  } else if (strncmp(cmdline, "type ", 5) == 0) {
+    cmd_type(cons, fat, cmdline);
+  } else if (strcmp(cmdline, "hlt") == 0) {
+    cmd_hlt(cons, fat);
+  } else if (cmdline[0] != 0) {
+    // Neither a command nor a while space.  
+    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "Bad command.", 12);
+    cons_newline(cons);
+    cons_newline(cons);
+  }
+  return;
+}
+
+void cmd_mem(struct CONSOLE *cons, unsigned int memtotal) {
+  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+  char s[30];
+  tsprintf(s, "total %dMB", memtotal / (1024 * 1024));
+  putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
+  cons_newline(cons);
+  tsprintf(s, "free %dKB", memman_total(memman) / 1024);
+  putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
+  cons_newline(cons);
+  cons_newline(cons);
+  return;
+}
+
+void cmd_cls(struct CONSOLE *cons) {
+  int x, y;
+  struct SHEET *sheet = cons->sht;
+  for (y = 28; y < 28 + 128; y++) {
+    for (x = 8; x < 8 + 240; x++) {
+      sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+    }
+  }
+  sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
+  cons->cur_y = 28;
+  return;
+}
+
+void cmd_dir(struct CONSOLE *cons) {
+  struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
+  int i, j;
+  char s[30];
+  for (i = 0; i < 224; i++) {
+    if (finfo[i].name[0] == 0x00) {
+      break;
+    }
+    if (finfo[i].name[0] != 0xe5) {
+      if ((finfo[i].type & 0x18) == 0) {
+        tsprintf(s, "filename.ext %d", finfo[i].size);
+        for (j = 0; j < 8; j++) {
+          s[j] = finfo[i].name[j];
+        }
+        s[ 9] = finfo[i].ext[0];
+        s[10] = finfo[i].ext[1];
+        s[11] = finfo[i].ext[2];
+        putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
+        cons_newline(cons);
+      }
+    }
+  }
+  cons_newline(cons);
+  return;
+}
+
+void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline) {
+  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+  struct FILEINFO *finfo = file_search(cmdline + 5, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
+  char *p;
+  int i;
+  if (finfo != 0) {
+    // When a file is found.   
+    p = (char *) memman_alloc_4k(memman, finfo->size);
+    file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+    for (i = 0; i < finfo->size; i++) {
+      cons_putchar(cons, p[i], 1);
+    }
+    memman_free_4k(memman, (int) p, finfo->size);
+  } else {
+    // When a file is not found.
+    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
+    cons_newline(cons);
+  }
+  cons_newline(cons);
+  return;
+}
+
+void cmd_hlt(struct CONSOLE *cons, int *fat) {
+  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+  struct FILEINFO *finfo = file_search("HLT.BIN", (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
+  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
+  char *p;
+  if (finfo != 0) {
+    // When the HLT.BIN file is found.  
+    p = (char *) memman_alloc_4k(memman, finfo->size);
+    file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+    set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER);
+    farjmp(0, 1003 * 8);
+    memman_free_4k(memman, (int) p, finfo->size);
+  } else {
+    // When the HLT.BIN file is not found.  
+    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
+    cons_newline(cons);
+  }
+  cons_newline(cons);
+  return;
+}
+
