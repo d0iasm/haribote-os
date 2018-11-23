@@ -145,12 +145,12 @@ void cons_newline(struct CONSOLE *cons) {
 void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int memtotal) {
   if (strcmp(cmdline, "mem") == 0) {
     cmd_mem(cons, memtotal);
-  } else if (strcmp(cmdline, "cls") == 0) {
-    cmd_cls(cons);
-  } else if (strcmp(cmdline, "dir") == 0) {
-    cmd_dir(cons);
-  } else if (strncmp(cmdline, "type ", 5) == 0) {
-    cmd_type(cons, fat, cmdline);
+  } else if (strcmp(cmdline, "clear") == 0) {
+    cmd_clear(cons);
+  } else if (strcmp(cmdline, "ls") == 0) {
+    cmd_ls(cons);
+  } else if (strncmp(cmdline, "cat ", 4) == 0) {
+    cmd_cat(cons, fat, cmdline);
   } else if (strcmp(cmdline, "hlt") == 0) {
     cmd_hlt(cons, fat);
   } else if (cmdline[0] != 0) {
@@ -175,7 +175,7 @@ void cmd_mem(struct CONSOLE *cons, unsigned int memtotal) {
   return;
 }
 
-void cmd_cls(struct CONSOLE *cons) {
+void cmd_clear(struct CONSOLE *cons) {
   int x, y;
   struct SHEET *sheet = cons->sht;
   for (y = 28; y < 28 + 128; y++) {
@@ -188,7 +188,7 @@ void cmd_cls(struct CONSOLE *cons) {
   return;
 }
 
-void cmd_dir(struct CONSOLE *cons) {
+void cmd_ls(struct CONSOLE *cons) {
   struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
   int i, j;
   char s[30];
@@ -202,7 +202,7 @@ void cmd_dir(struct CONSOLE *cons) {
         for (j = 0; j < 8; j++) {
           s[j] = finfo[i].name[j];
         }
-        s[ 9] = finfo[i].ext[0];
+        s[9] = finfo[i].ext[0];
         s[10] = finfo[i].ext[1];
         s[11] = finfo[i].ext[2];
         putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
@@ -214,9 +214,9 @@ void cmd_dir(struct CONSOLE *cons) {
   return;
 }
 
-void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline) {
+void cmd_cat(struct CONSOLE *cons, int *fat, char *cmdline) {
   struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-  struct FILEINFO *finfo = file_search(cmdline + 5, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
+  struct FILEINFO *finfo = file_search(cmdline + 4, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
   char *p;
   int i;
   if (finfo != 0) {
