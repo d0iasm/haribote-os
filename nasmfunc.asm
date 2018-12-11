@@ -23,11 +23,13 @@
   global store_cr0
   global load_tr
   global farjmp
+  global asm_cons_putchar
 
   extern inthandler20
   extern inthandler21
   extern inthandler27
   extern inthandler2c
+  extern cons_putchar
 
   section .text
 
@@ -188,3 +190,11 @@ farjmp: ; void farjmp(int eip, int cs);
   JMP FAR [ESP+4] ; sip, cs
   RET
 
+asm_cons_putchar:
+  PUSH 1
+  AND EAX, 0xff
+  PUSH EAX
+  PUSH DWORD [0x0fec] ; Read content in a memory and push it.
+  CALL cons_putchar
+  ADD ESP, 12 ; Dump data of stack.
+  RET
