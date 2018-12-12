@@ -19,6 +19,9 @@ default:
 %.o: %.c
 	$(GCC) -o $*.o $*.c
 
+map:
+	$(LD) -Map=bootpack.map -e hari_main -o bootpack.bin $(FILES) 
+
 apps:
 	$(NASM) -o hlt.bin hlt.asm
 
