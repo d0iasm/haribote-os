@@ -197,4 +197,4 @@ asm_cons_putchar:
   PUSH DWORD [0x0fec] ; Read content in a memory and push it.
   CALL cons_putchar
   ADD ESP, 12 ; Dump data of stack.
-  RET
+  RETF ; Return from far-CALL
