@@ -43,12 +43,12 @@ Linker script and memory map
                 0x0000000000000008        0x4 LONG 0x0
                 0x000000000000000c        0x4 LONG 0x310000
                 0x0000000000000010        0x4 LONG 0x2296 SIZEOF (.data)
-                0x0000000000000014        0x4 LONG 0x48fe LOADADDR (.data)
+                0x0000000000000014        0x4 LONG 0x4903 LOADADDR (.data)
                 0x0000000000000018        0x4 LONG 0xe9000000
                 0x000000000000001c        0x4 LONG 0x105 (hari_main - 0x20)
                 0x0000000000000020        0x4 LONG 0x1
 
-.text           0x0000000000000030     0x48ce
+.text           0x0000000000000030     0x48d3
  *(.text)
  .text          0x0000000000000030      0xaae bootpack.o
                 0x0000000000000030                task_b_main
@@ -122,7 +122,7 @@ Linker script and memory map
                 0x00000000000031de                task_sleep
                 0x000000000000322e                task_switch
  *fill*         0x00000000000032fd        0x3 
- .text          0x0000000000003300       0xfa nasmfunc.o
+ .text          0x0000000000003300       0xff nasmfunc.o
                 0x0000000000003300                io_hlt
                 0x0000000000003302                io_cli
                 0x0000000000003304                io_sti
@@ -145,38 +145,39 @@ Linker script and memory map
                 0x00000000000033d0                store_cr0
                 0x00000000000033d8                load_tr
                 0x00000000000033de                farjmp
-                0x00000000000033e3                asm_cons_putchar
- .text          0x00000000000033fa      0xa29 sheet.o
-                0x00000000000033fa                shtctl_init
-                0x00000000000034e1                sheet_alloc
-                0x0000000000003558                sheet_setbuf
-                0x0000000000003581                sheet_refreshmap
-                0x0000000000003735                sheet_refreshsub
-                0x0000000000003901                sheet_updown
-                0x0000000000003c78                sheet_refresh
-                0x0000000000003ce9                sheet_slide
-                0x0000000000003dfc                sheet_free
- .text          0x0000000000003e23      0x29a timer.o
-                0x0000000000003e23                init_pit
-                0x0000000000003ecb                timer_alloc
-                0x0000000000003f35                timer_free
-                0x0000000000003f45                timer_init
-                0x0000000000003f5d                timer_settime
-                0x000000000000400c                inthandler20
- .text          0x00000000000040bd      0x3d8 tsprintf.o
-                0x00000000000040bd                tsprintf
-                0x0000000000004261                strcls
-                0x000000000000427f                int2char
-                0x0000000000004298                int2hex
-                0x0000000000004381                figure
-                0x00000000000043e1                int2dec
-                0x0000000000004463                int2str
- .text          0x0000000000004495      0x469 window.o
-                0x0000000000004495                make_window8
-                0x0000000000004607                make_wtitle8
-                0x00000000000046ff                make_textbox8
+                0x00000000000033e3                farcall
+                0x00000000000033e8                asm_cons_putchar
+ .text          0x00000000000033ff      0xa29 sheet.o
+                0x00000000000033ff                shtctl_init
+                0x00000000000034e6                sheet_alloc
+                0x000000000000355d                sheet_setbuf
+                0x0000000000003586                sheet_refreshmap
+                0x000000000000373a                sheet_refreshsub
+                0x0000000000003906                sheet_updown
+                0x0000000000003c7d                sheet_refresh
+                0x0000000000003cee                sheet_slide
+                0x0000000000003e01                sheet_free
+ .text          0x0000000000003e28      0x29a timer.o
+                0x0000000000003e28                init_pit
+                0x0000000000003ed0                timer_alloc
+                0x0000000000003f3a                timer_free
+                0x0000000000003f4a                timer_init
+                0x0000000000003f62                timer_settime
+                0x0000000000004011                inthandler20
+ .text          0x00000000000040c2      0x3d8 tsprintf.o
+                0x00000000000040c2                tsprintf
+                0x0000000000004266                strcls
+                0x0000000000004284                int2char
+                0x000000000000429d                int2hex
+                0x0000000000004386                figure
+                0x00000000000043e6                int2dec
+                0x0000000000004468                int2str
+ .text          0x000000000000449a      0x469 window.o
+                0x000000000000449a                make_window8
+                0x000000000000460c                make_wtitle8
+                0x0000000000004704                make_textbox8
 
-.data           0x0000000000310000     0x2296 load address 0x00000000000048fe
+.data           0x0000000000310000     0x2296 load address 0x0000000000004903
  *(.data)
  .data          0x0000000000310000      0x100 bootpack.o
  .data          0x0000000000310100      0x100 console.o
@@ -296,7 +297,7 @@ OUTPUT(bootpack.bin binary)
  .note.GNU-stack
                 0x0000000000000000        0x0 window.o
 
-.bss            0x00000000003122a0     0x273c load address 0x0000000000006ba0
+.bss            0x00000000003122a0     0x273c load address 0x0000000000006bc0
  COMMON         0x00000000003122a0        0x8 keyboard.o
                 0x00000000003122a0                keyfifo
                 0x00000000003122a4                keydata0

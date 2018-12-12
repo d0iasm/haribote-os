@@ -23,6 +23,7 @@
   global store_cr0
   global load_tr
   global farjmp
+  global farcall
   global asm_cons_putchar
 
   extern inthandler20
@@ -188,6 +189,10 @@ load_tr: ; void load_tr(int tr);
 
 farjmp: ; void farjmp(int eip, int cs);
   JMP FAR [ESP+4] ; sip, cs
+  RET
+
+farcall: ; void farcall(int eip, int cs);
+  CALL FAR [ESP+4] ; eip, cs
   RET
 
 asm_cons_putchar:
