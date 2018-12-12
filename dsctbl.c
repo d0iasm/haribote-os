@@ -27,6 +27,9 @@ void init_gdtidt(void) {
   set_gatedesc(idt + 0x21, (int) asm_inthandler21, 2 * 8, AR_INTGATE32);
   set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32);
   set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32);
+  
+  // Set API interruption in IDT. IDT has free table 0x30 ~ 0xff.
+  set_gatedesc(idt + 0x40, (int) asm_cons_putchar, 2 * 8, AR_INTGATE32);
 
   return;
 }
