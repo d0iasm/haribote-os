@@ -197,10 +197,12 @@ farcall: ; void farcall(int eip, int cs);
 
 asm_cons_putchar:
   STI ; Workaround to prevent CLI
+  PUSHAD
   PUSH 1
   AND EAX, 0xff ; Fill char code in EAX
   PUSH EAX
   PUSH DWORD [0x0fec] ; Read content in a memory and push it.
   CALL cons_putchar
   ADD ESP, 12 ; Dump data of stack.
+  POPAD
   IRETD ; Return from interruption
