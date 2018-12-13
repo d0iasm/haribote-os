@@ -25,12 +25,14 @@
   global farjmp
   global farcall
   global asm_cons_putchar
+  global asm_hrb_api
 
   extern inthandler20
   extern inthandler21
   extern inthandler27
   extern inthandler2c
   extern cons_putchar
+  extern hrb_api
 
   section .text
 
@@ -206,4 +208,14 @@ asm_cons_putchar:
   ADD ESP, 12 ; Dump data of stack.
   POPAD
   IRETD ; Return from interruption
+
+asm_hrb_api:
+  STI
+  PUSHAD ; Store general-purpose registers
+  PUSHAD ; Pass hrb_api
+  CALL hrb_api
+  ADD ESP, 32
+  PUSHAD
+  IRETD
+
 

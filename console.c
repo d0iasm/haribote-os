@@ -224,7 +224,7 @@ void cmd_cat(struct CONSOLE* cons, int* fat, char* cmdline)
     // When a file is found.
     p = (char*)memman_alloc_4k(memman, finfo->size);
     file_loadfile(finfo->clustno, finfo->size, p, fat, (char*)(ADR_DISKIMG + 0x003e00));
-cons_putstr1(cons, p, finfo->size);
+    cons_putstr1(cons, p, finfo->size);
     memman_free_4k(memman, (int)p, finfo->size);
   } else {
     // When a file is not found.
@@ -288,6 +288,19 @@ void cons_putstr1(struct CONSOLE* cons, char* s, int l)
   int i;
   for (i = 0; i < l; i++) {
     cons_putchar(cons, s[i], 1);
+  }
+  return;
+}
+
+void hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax)
+{
+  struct CONSOLE* cons = (struct CONSOLE*)*((int*)0x0fec);
+  if (edx == 1) {
+    cons_putchar(cons, eax & 0xff, 1);
+  } else if (edx == 2) {
+    cons_putstr0(cons, (char*)ebx);
+  } else if (edx == 3) {
+    cons_putstr1(cons, (char*)ebx, ecx);
   }
   return;
 }

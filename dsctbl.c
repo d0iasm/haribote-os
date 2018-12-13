@@ -1,13 +1,13 @@
 // dsctble.c: Descriptor table for GDT and IDT
 #include "bootpack.h"
 
-
-void init_gdtidt(void) {
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *) ADR_IDT;
+void init_gdtidt(void)
+{
+  struct SEGMENT_DESCRIPTOR* gdt = (struct SEGMENT_DESCRIPTOR*)ADR_GDT;
+  struct GATE_DESCRIPTOR* idt = (struct GATE_DESCRIPTOR*)ADR_IDT;
 
   // GDT
-  for (int i=0; i<=LIMIT_GDT/8; i++) {
+  for (int i = 0; i <= LIMIT_GDT / 8; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
 
@@ -17,24 +17,25 @@ void init_gdtidt(void) {
   load_gdtr(LIMIT_GDT, ADR_GDT);
 
   // IDT
-  for (int i=0; i<=LIMIT_IDT/8; i++) {
+  for (int i = 0; i <= LIMIT_IDT / 8; i++) {
     set_gatedesc(idt + i, 0, 0, 0);
   }
   load_idtr(LIMIT_IDT, ADR_IDT);
 
   // Set interruption handler to IDT(=Interrupt Descriptor Table)
-  set_gatedesc(idt + 0x20, (int) asm_inthandler20, 2 * 8, AR_INTGATE32);
-  set_gatedesc(idt + 0x21, (int) asm_inthandler21, 2 * 8, AR_INTGATE32);
-  set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32);
-  set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32);
-  
+  set_gatedesc(idt + 0x20, (int)asm_inthandler20, 2 * 8, AR_INTGATE32);
+  set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8, AR_INTGATE32);
+  set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 * 8, AR_INTGATE32);
+  set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
+
   // Set API interruption in IDT. IDT has free table 0x30 ~ 0xff.
-  set_gatedesc(idt + 0x40, (int) asm_cons_putchar, 2 * 8, AR_INTGATE32);
+  set_gatedesc(idt + 0x40, (int)asm_hrb_api, 2 * 8, AR_INTGATE32);
 
   return;
 }
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
+void set_segmdesc(struct SEGMENT_DESCRIPTOR* sd, unsigned int limit, int base, int ar)
+{
   if (limit > 0xfffff) {
     ar |= 0x8000; // G_bit = 1
     limit /= 0x1000;
@@ -48,7 +49,8 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, i
   return;
 }
 
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) {
+void set_gatedesc(struct GATE_DESCRIPTOR* gd, int offset, int selector, int ar)
+{
   gd->offset_low = offset & 0xffff;
   gd->selector = selector;
   gd->dw_count = (ar >> 8) & 0xff;
@@ -56,4 +58,3 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) 
   gd->offset_high = (offset >> 16) & 0xffff;
   return;
 }
-
