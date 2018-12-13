@@ -14,6 +14,19 @@ A haribote OS. Just run it by `$ make run`.
 - binary assembled from nasmhead.asm
 - binary compiled from bootpack.c and other c files.
 
+## OS headers
+| Place     | Content                                             |
+|-----------|-----------------------------------------------------|
+| 0         | The size of stack + data + heap (A multiple of 4KB) |
+| 4         | Signature "Hari"                                    |
+| 8         | The size of mmarea (A multiple of 4KB)              |
+| 12        | Init value of stack & the destination of .data      |
+| 16        | The size of .data                                   |
+| 20        | The file place of init value of .data               |
+| 24        | 0xE9000000                                          |
+| 28        | Entry address - 0x20                                |
+| 32        | Start address of heap area(malloc area)             |
+
 ## Memory maps
 ### When finish ipl10.asm 
 - 0x07C00ー0x07DFF: IPL. The first 1 sector(2048 bytes) of a floopy disk. This is the boot sector.
