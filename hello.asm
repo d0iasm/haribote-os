@@ -1,13 +1,17 @@
   ; hlt.asm : A minimum application just to disable interruption.
   bits 32
-  MOV AL, 'h'
-  INT 0x40
-  MOV AL, 'e'
-  INT 0x40
-  MOV AL, 'l'
-  INT 0x40
-  MOV AL, 'l'
-  INT 0x40
-  MOV AL, 'o'
-  INT 0x40
-  RETF
+  mov ecx, msg
+
+putloop:
+  mov al, [cs: ecx]
+  cmp al, 0
+  je fin
+  int 0x40
+  add ecx, 1
+  jmp putloop
+
+fin:
+  retf
+
+msg: db "hello",0
+  
