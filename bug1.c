@@ -1,6 +1,7 @@
 void api_putchar(int c);
 void api_end(void);
-void HariMain(void)
+
+void hari_main(void)
 {
   char a[100];
   a[10] = 'A'; // OK
