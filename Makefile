@@ -27,15 +27,6 @@ apps: hello3 a
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
 
-cracks:
-	$(GCC) -o crack1.o crack1.c
-	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
-	$(NASM) -o crack2.bin crack2.asm
-	$(NASM) -o crack3.bin crack3.asm
-	$(NASM) -o crack4.bin crack4.asm
-	$(NASM) -o crack5.bin crack5.asm
-	$(LD_API) -Map=api.map -e hari_main -o crack1.bin a_nasm.o crack1.o
-
 hello3:
 	$(GCC) -o hello3.o hello3.c
 	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
