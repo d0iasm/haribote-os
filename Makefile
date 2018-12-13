@@ -23,7 +23,7 @@ default:
 map:
 	$(LD) -Map=bootpack.map -e hari_main -o bootpack.bin $(FILES)
 
-apps:
+apps: hello3 a
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
 

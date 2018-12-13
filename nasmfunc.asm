@@ -15,6 +15,7 @@
   global io_store_eflags
   global load_gdtr
   global load_idtr
+  global asm_inthandler0d
   global asm_inthandler20
   global asm_inthandler21
   global asm_inthandler27
@@ -26,7 +27,9 @@
   global farcall
   global asm_cons_putchar
   global asm_hrb_api
+  global start_app
 
+  extern inthandler0d
   extern inthandler20
   extern inthandler21
   extern inthandler27
@@ -110,6 +113,26 @@ load_idtr: ; void load_idtr(int limit, int addr);
   MOV [ESP+6], AX
   LIDT [ESP+6]
   RET
+
+asm_inthandler0d:
+  STI
+  PUSH ES
+  PUSH DS
+  PUSHAD
+  MOV EAX, ESP
+  PUSH EAX
+  MOV AX, SS
+  MOV DS, AX
+  MOV ES, AX
+  CALL inthandler0d
+  CMP EAX,0
+  JNE end_app
+  POP EAX
+  POPAD
+  POP DS
+  POP ES
+  ADD ESP,4
+  IRETD
 
 asm_inthandler20:
   PUSH ES
@@ -211,9 +234,48 @@ asm_cons_putchar:
 
 asm_hrb_api:
   STI
-  PUSHAD ; Store general-purpose registers
-  PUSHAD ; Pass hrb_api
+  PUSH DS
+  PUSH ES
+  PUSHAD ; Store general-purpose registers.
+  PUSHAD ; Pass hrb_api.
+  MOV AX, SS
+  MOV DS, AX ; Store the segment for OS into DS and ES.
+  MOV ES, AX
   CALL hrb_api
+  CMP EAX, 0 ; Quit an app if EAX is not 0.
+  JNE end_app
   ADD ESP, 32
   POPAD
+  POP ES
+  POP DS
   IRETD
+
+end_app:
+  ; EAX is the address of tss.esp0
+  MOV ESP, [EAX]
+  POPAD
+  RET ; Return cmd_app().
+
+start_app: ; void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
+  PUSHAD
+  MOV EAX, [ESP+36] ; EIP for an app
+  MOV ECX, [ESP+40] ; CS for an app
+  MOV EDX, [ESP+44] ; ESP for an app
+  MOV EBX, [ESP+48] ; DS/SS for an app
+  MOV EBP, [ESP+52] ; tss.esp0 's address
+  MOV [EBP], ESP ; Store ESP of OS
+  MOV [EBP+4], SS ; Store SS of OS
+  MOV ES, BX
+  MOV DS, BX
+  MOV FS, BX
+  MOV GS, BX
+
+  ; Call app's code by RETF
+  OR ECX, 3 ; OR the segment number of an app
+  OR EBX, 3 ; OR the segment number of an app
+  PUSH EBX ; SS for an app
+  PUSH EDX ; ESP for an app
+  PUSH ECX ; CS for an app
+  PUSH EAX ; EIP for an app
+  RETF
+  ; No app is here after finish it.

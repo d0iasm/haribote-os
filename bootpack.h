@@ -74,7 +74,8 @@ void cmd_cat(struct CONSOLE* cons, int* fat, char* cmdline);
 int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline);
 void cons_putstr0(struct CONSOLE* cons, char* s);
 void cons_putstr1(struct CONSOLE* cons, char* s, int l);
-void hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
+int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
+int* inthandler0d(int* esp);
 /* -- console.c end -- */
 
 /* -- dsctbl.c start -- */
@@ -298,6 +299,7 @@ int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+void asm_inthandler0d(void);
 void asm_inthandler20(void);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
@@ -309,6 +311,7 @@ void farjmp(int eip, int cs);
 void farcall(int eip, int cs);
 void asm_cons_putchar(void);
 void asm_hrb_api(void);
+void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
 /* -- nasmfunc.asm end --*/
 
 /* -- nasmhead.asm start --*/
