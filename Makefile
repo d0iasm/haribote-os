@@ -35,6 +35,8 @@ apps:
 	$(LD_API) -Map=api.map -e hari_main -o bug1.bin apifunc.o bug1.o
 	$(GCC) -o bug2.o bug2.c
 	$(LD_API) -Map=api.map -e hari_main -o bug2.bin apifunc.o bug2.o
+	$(GCC) -o bug3.o bug3.c
+	$(LD_API) -Map=api.map -e hari_main -o bug3.bin apifunc.o bug3.o
 
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -70,6 +72,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img hello3.bin ::
 	mcopy -i os.img bug1.bin ::
 	mcopy -i os.img bug2.bin ::
+	mcopy -i os.img bug3.bin ::
 
 run: os.img
 	$(QEMU) os.img
