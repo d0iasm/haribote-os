@@ -27,7 +27,12 @@ apps:
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
 
-a: a_nasm.asm a.c
+hello3:
+	$(GCC) -o hello3.o hello3.c
+	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
+	$(LD_API) -Map=api.map -e hari_main -o hello3.bin a_nasm.o hello3.o
+
+a:
 	$(GCC) -o a.o a.c
 	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
 	$(LD_API) -Map=api.map -e hari_main -o a.bin a_nasm.o a.o
@@ -63,6 +68,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img hello.bin ::
 	mcopy -i os.img hello2.bin ::
 	mcopy -i os.img a.bin ::
+	mcopy -i os.img hello3.bin ::
 
 run: os.img
 	$(QEMU) os.img

@@ -1,7 +1,7 @@
 
 Discarded input sections
 
- .eh_frame      0x0000000000000000       0x38 a.o
+ .eh_frame      0x0000000000000000       0x38 hello3.o
 
 Memory Configuration
 
@@ -17,35 +17,35 @@ Linker script and memory map
                 0x0000000000000008        0x4 LONG 0x0
                 0x000000000000000c        0x4 LONG 0x400
                 0x0000000000000010        0x4 LONG 0x0 SIZEOF (.data)
-                0x0000000000000014        0x4 LONG 0x52 LOADADDR (.data)
+                0x0000000000000014        0x4 LONG 0x86 LOADADDR (.data)
                 0x0000000000000018        0x4 LONG 0xe9000000
                 0x000000000000001c        0x4 LONG 0x1c (hari_main - 0x20)
                 0x0000000000000020        0x4 LONG 0x6000
 
-.text           0x0000000000000030       0x22
+.text           0x0000000000000030       0x56
  *(.text)
  .text          0x0000000000000030        0xc a_nasm.o
                 0x0000000000000030                api_putchar
- .text          0x000000000000003c       0x16 a.o
+ .text          0x000000000000003c       0x4a hello3.o
                 0x000000000000003c                hari_main
 
-.data           0x0000000000000400        0x0 load address 0x0000000000000052
+.data           0x0000000000000400        0x0 load address 0x0000000000000086
  *(.data)
- .data          0x0000000000000400        0x0 a.o
+ .data          0x0000000000000400        0x0 hello3.o
  *(.rodata)
  *(.bss*)
- .bss           0x0000000000000400        0x0 a.o
+ .bss           0x0000000000000400        0x0 hello3.o
 
 /DISCARD/
  *(.eh_frame)
 LOAD a_nasm.o
-LOAD a.o
-OUTPUT(a.bin binary)
+LOAD hello3.o
+OUTPUT(hello3.bin binary)
 
 .comment        0x0000000000000000       0x2b
- .comment       0x0000000000000000       0x2b a.o
+ .comment       0x0000000000000000       0x2b hello3.o
 
 .note.GNU-stack
                 0x0000000000000000        0x0
  .note.GNU-stack
-                0x0000000000000000        0x0 a.o
+                0x0000000000000000        0x0 hello3.o
