@@ -327,10 +327,25 @@ int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
   return 0;
 }
 
+int* inthandler0c(int* esp)
+{
+  struct CONSOLE* cons = (struct CONSOLE*)*((int*)0x0fec);
+  struct TASK* task = task_now();
+  char s[30];
+  cons_putstr0(cons, "\n INT 0C :\n Stack Exception.\n");
+  tsprintf(s, "EIP = %x\n", esp[11]);
+  cons_putstr0(cons, s);
+  return &(task->tss.esp0); // Abnormal termination.
+}
+
 int* inthandler0d(int* esp)
 {
   struct CONSOLE* cons = (struct CONSOLE*)*((int*)0x0fec);
   struct TASK* task = task_now();
+  char s[30];
   cons_putstr0(cons, "\n INT 0D :\n General Protected Exception.\n");
+  // TODO: Bug? EIP isn't displayed.
+  tsprintf(s, "EIP = %x\n", esp[11]);
+  cons_putstr0(cons, s);
   return &(task->tss.esp0);
 }

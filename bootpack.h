@@ -75,6 +75,7 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline);
 void cons_putstr0(struct CONSOLE* cons, char* s);
 void cons_putstr1(struct CONSOLE* cons, char* s, int l);
 int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
+int* inthandler0c(int* esp);
 int* inthandler0d(int* esp);
 /* -- console.c end -- */
 
@@ -299,6 +300,7 @@ int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+void asm_inthandler0c(void);
 void asm_inthandler0d(void);
 void asm_inthandler20(void);
 void asm_inthandler21(void);

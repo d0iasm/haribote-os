@@ -15,6 +15,7 @@
   global io_store_eflags
   global load_gdtr
   global load_idtr
+  global asm_inthandler0c
   global asm_inthandler0d
   global asm_inthandler20
   global asm_inthandler21
@@ -29,6 +30,7 @@
   global asm_hrb_api
   global start_app
 
+  extern inthandler0c
   extern inthandler0d
   extern inthandler20
   extern inthandler21
@@ -113,6 +115,26 @@ load_idtr: ; void load_idtr(int limit, int addr);
   MOV [ESP+6], AX
   LIDT [ESP+6]
   RET
+
+asm_inthandler0c:
+  STI
+  PUSH ES
+  PUSH DS
+  PUSHAD
+  MOV EAX, ESP
+  PUSH EAX
+  MOV AX, SS
+  MOV DS, AX
+  MOV ES, AX
+  CALL inthandler0c
+  CMP EAX, 0
+  JNE end_app
+  POP EAX
+  POPAD
+  POP DS
+  POP ES
+  ADD ESP, 4 ; INT 0x0c
+  IRETD
 
 asm_inthandler0d:
   STI
