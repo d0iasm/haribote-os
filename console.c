@@ -158,9 +158,7 @@ void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int mem
   } else if (cmdline[0] != 0) {
     if (cmd_app(cons, fat, cmdline) == 0) {
       // Neither a command nor a while space.
-      putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "Bad command.", 12);
-      cons_newline(cons);
-      cons_newline(cons);
+      cons_putstr0(cons, "Bad command.\n\n");
     }
   }
   return;
@@ -169,14 +167,9 @@ void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int mem
 void cmd_mem(struct CONSOLE* cons, unsigned int memtotal)
 {
   struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
-  char s[30];
-  tsprintf(s, "total %dMB", memtotal / (1024 * 1024));
-  putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
-  cons_newline(cons);
-  tsprintf(s, "free %dKB", memman_total(memman) / 1024);
-  putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
-  cons_newline(cons);
-  cons_newline(cons);
+  char s[60];
+  tsprintf(s, "total %dMB\nfree %dKB \n\n", memtotal / (1024 * 1024), memman_total(memman) / 1024);
+  cons_putstr0(cons, s);
   return;
 }
 
@@ -212,7 +205,7 @@ void cmd_ls(struct CONSOLE* cons)
         s[9] = finfo[i].ext[0];
         s[10] = finfo[i].ext[1];
         s[11] = finfo[i].ext[2];
-        putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
+        cons_putstr0(cons, s);
         cons_newline(cons);
       }
     }
@@ -231,14 +224,11 @@ void cmd_cat(struct CONSOLE* cons, int* fat, char* cmdline)
     // When a file is found.
     p = (char*)memman_alloc_4k(memman, finfo->size);
     file_loadfile(finfo->clustno, finfo->size, p, fat, (char*)(ADR_DISKIMG + 0x003e00));
-    for (i = 0; i < finfo->size; i++) {
-      cons_putchar(cons, p[i], 1);
-    }
+cons_putstr1(cons, p, finfo->size);
     memman_free_4k(memman, (int)p, finfo->size);
   } else {
     // When a file is not found.
-    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
-    cons_newline(cons);
+    cons_putstr0(cons, "File not found.\n");
   }
   cons_newline(cons);
   return;
@@ -285,3 +275,19 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
   return 0;
 }
 
+void cons_putstr0(struct CONSOLE* cons, char* s)
+{
+  for (; *s != 0; s++) {
+    cons_putchar(cons, *s, 1);
+  }
+  return;
+}
+
+void cons_putstr1(struct CONSOLE* cons, char* s, int l)
+{
+  int i;
+  for (i = 0; i < l; i++) {
+    cons_putchar(cons, s[i], 1);
+  }
+  return;
+}

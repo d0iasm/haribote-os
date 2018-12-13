@@ -75,6 +75,8 @@ void cmd_clear(struct CONSOLE *cons);
 void cmd_ls(struct CONSOLE *cons);
 void cmd_cat(struct CONSOLE *cons, int *fat, char *cmdline);
 int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline);
+void cons_putstr0(struct CONSOLE* cons, char* s);
+void cons_putstr1(struct CONSOLE* cons, char* s, int l);
 /* -- console.c end -- */
 
 

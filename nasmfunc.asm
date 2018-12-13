@@ -197,7 +197,7 @@ farcall: ; void farcall(int eip, int cs);
 
 asm_cons_putchar:
   STI ; Workaround to prevent CLI
-  PUSHAD
+  PUSHAD ; Push general-purpose registers to avoid changing exc register.
   PUSH 1
   AND EAX, 0xff ; Fill char code in EAX
   PUSH EAX
@@ -206,3 +206,4 @@ asm_cons_putchar:
   ADD ESP, 12 ; Dump data of stack.
   POPAD
   IRETD ; Return from interruption
+
