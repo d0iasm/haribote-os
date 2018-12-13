@@ -1,7 +1,6 @@
 void api_putchar(int c);
 
-void hari_main(void)
-{
+void hari_main(void) {
   api_putchar('h');
   api_putchar('e');
   api_putchar('l');
