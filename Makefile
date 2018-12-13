@@ -27,9 +27,10 @@ apps:
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
 
-crack:
+cracks:
 	$(GCC) -o crack1.o crack1.c
 	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
+	$(NASM) -o crack2.bin crack2.asm
 	$(LD_API) -Map=api.map -e hari_main -o crack1.bin a_nasm.o crack1.o
 
 hello3:
@@ -75,6 +76,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img a.bin ::
 	mcopy -i os.img hello3.bin ::
 	mcopy -i os.img crack1.bin ::
+	mcopy -i os.img crack2.bin ::
 
 run: os.img
 	$(QEMU) os.img
