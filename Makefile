@@ -24,6 +24,7 @@ map:
 
 apps:
 	$(NASM) -o hello.bin hello.asm
+	$(NASM) -o hello2.bin hello2.asm
 
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -54,6 +55,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img README.md ::
 	mcopy -i os.img Makefile ::
 	mcopy -i os.img hello.bin ::
+	mcopy -i os.img hello2.bin ::
 
 run: os.img
 	$(QEMU) os.img
