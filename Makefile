@@ -3,6 +3,7 @@
 DEL = rm -f
 GCC = gcc -c -m32 -fno-pic -nostdlib
 LD = ld -m elf_i386 -T os.ls
+LD_API = ld -m elf_i386 -T api.ls
 # nasm:
 #	-f: Select an output format.
 #	ELF32 (i386) object files (e.g. Linux)
@@ -25,6 +26,11 @@ map:
 apps:
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
+
+a: a_nasm.asm a.c
+	$(GCC) -o a.o a.c
+	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
+	$(LD_API) -Map=api.map -e hari_main -o a.bin a_nasm.o a.o
 
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -56,6 +62,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img Makefile ::
 	mcopy -i os.img hello.bin ::
 	mcopy -i os.img hello2.bin ::
+	mcopy -i os.img a.bin ::
 
 run: os.img
 	$(QEMU) os.img
@@ -66,6 +73,7 @@ clean:
 	rm -f *.img
 	rm -f *.o
 	rm -f *.sys
+	rm -f *.map
 
 debug:
 	$(QEMU) os.img -gdb tcp::10000 -S

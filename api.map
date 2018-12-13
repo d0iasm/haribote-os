@@ -1,0 +1,51 @@
+
+Discarded input sections
+
+ .eh_frame      0x0000000000000000       0x38 a.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+
+.head           0x0000000000000000       0x24
+                0x0000000000000000        0x4 LONG 0x20000
+                0x0000000000000004        0x4 LONG 0x69726148
+                0x0000000000000008        0x4 LONG 0x0
+                0x000000000000000c        0x4 LONG 0x400
+                0x0000000000000010        0x4 LONG 0x0 SIZEOF (.data)
+                0x0000000000000014        0x4 LONG 0x52 LOADADDR (.data)
+                0x0000000000000018        0x4 LONG 0xe9000000
+                0x000000000000001c        0x4 LONG 0x1c (hari_main - 0x20)
+                0x0000000000000020        0x4 LONG 0x6000
+
+.text           0x0000000000000030       0x22
+ *(.text)
+ .text          0x0000000000000030        0xc a_nasm.o
+                0x0000000000000030                api_putchar
+ .text          0x000000000000003c       0x16 a.o
+                0x000000000000003c                hari_main
+
+.data           0x0000000000000400        0x0 load address 0x0000000000000052
+ *(.data)
+ .data          0x0000000000000400        0x0 a.o
+ *(.rodata)
+ *(.bss*)
+ .bss           0x0000000000000400        0x0 a.o
+
+/DISCARD/
+ *(.eh_frame)
+LOAD a_nasm.o
+LOAD a.o
+OUTPUT(a.bin binary)
+
+.comment        0x0000000000000000       0x2b
+ .comment       0x0000000000000000       0x2b a.o
+
+.note.GNU-stack
+                0x0000000000000000        0x0
+ .note.GNU-stack
+                0x0000000000000000        0x0 a.o
