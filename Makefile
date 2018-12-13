@@ -32,6 +32,7 @@ cracks:
 	$(NASM_ELF32) -o a_nasm.o a_nasm.asm
 	$(NASM) -o crack2.bin crack2.asm
 	$(NASM) -o crack3.bin crack3.asm
+	$(NASM) -o crack4.bin crack4.asm
 	$(LD_API) -Map=api.map -e hari_main -o crack1.bin a_nasm.o crack1.o
 
 hello3:
@@ -79,6 +80,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img crack1.bin ::
 	mcopy -i os.img crack2.bin ::
 	mcopy -i os.img crack3.bin ::
+	mcopy -i os.img crack4.bin ::
 
 run: os.img
 	$(QEMU) os.img
