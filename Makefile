@@ -27,16 +27,18 @@ apps:
 	$(NASM) -o hello.bin hello.asm
 	$(NASM) -o hello2.bin hello2.asm
 	$(GCC) -o hello3.o hello3.c
+	$(GCC) -o hello4.o hello4.c
 	$(NASM_ELF32) -o apifunc.o apifunc.asm
-	$(LD_API) -Map=api.map -e hari_main -o hello3.bin apifunc.o hello3.o
+	$(LD_API) -e hari_main -o hello3.bin apifunc.o hello3.o
+	$(LD_API) -e hari_main -o hello4.bin apifunc.o hello4.o
 	$(GCC) -o a.o a.c
-	$(LD_API) -Map=api.map -e hari_main -o a.bin apifunc.o a.o
+	$(LD_API) -e hari_main -o a.bin apifunc.o a.o
 	$(GCC) -o bug1.o bug1.c
-	$(LD_API) -Map=api.map -e hari_main -o bug1.bin apifunc.o bug1.o
+	$(LD_API) -e hari_main -o bug1.bin apifunc.o bug1.o
 	$(GCC) -o bug2.o bug2.c
-	$(LD_API) -Map=api.map -e hari_main -o bug2.bin apifunc.o bug2.o
+	$(LD_API) -e hari_main -o bug2.bin apifunc.o bug2.o
 	$(GCC) -o bug3.o bug3.c
-	$(LD_API) -Map=api.map -e hari_main -o bug3.bin apifunc.o bug3.o
+	$(LD_API) -e hari_main -o bug3.bin apifunc.o bug3.o
 
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -73,6 +75,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img bug1.bin ::
 	mcopy -i os.img bug2.bin ::
 	mcopy -i os.img bug3.bin ::
+	mcopy -i os.img hello4.bin ::
 
 run: os.img
 	$(QEMU) os.img
