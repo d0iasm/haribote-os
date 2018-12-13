@@ -215,7 +215,5 @@ asm_hrb_api:
   PUSHAD ; Pass hrb_api
   CALL hrb_api
   ADD ESP, 32
-  PUSHAD
+  POPAD
   IRETD
-
-
