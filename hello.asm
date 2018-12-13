@@ -1,9 +1,13 @@
   ; hlt.asm : A minimum application just to disable interruption.
   bits 32
-  MOV AL, 'A'
+  MOV AL, 'h'
   INT 0x40
-  MOV AL, 'B'
+  MOV AL, 'e'
   INT 0x40
-  MOV AL, 'C'
+  MOV AL, 'l'
+  INT 0x40
+  MOV AL, 'l'
+  INT 0x40
+  MOV AL, 'o'
   INT 0x40
   RETF
