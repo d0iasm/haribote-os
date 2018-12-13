@@ -28,6 +28,7 @@
   global farcall
   global asm_cons_putchar
   global asm_hrb_api
+  global asm_end_app
   global start_app
 
   extern inthandler0c
@@ -128,7 +129,7 @@ asm_inthandler0c:
   MOV ES, AX
   CALL inthandler0c
   CMP EAX, 0
-  JNE end_app
+  JNE asm_end_app
   POP EAX
   POPAD
   POP DS
@@ -148,7 +149,7 @@ asm_inthandler0d:
   MOV ES, AX
   CALL inthandler0d
   CMP EAX,0
-  JNE end_app
+  JNE asm_end_app
   POP EAX
   POPAD
   POP DS
@@ -171,7 +172,6 @@ asm_inthandler20:
   POP DS
   POP ES
   IRETD ; Execute IRETD when the end of interruption instead of RET(=return)
-
 
 asm_inthandler21:
   PUSH ES
@@ -265,16 +265,17 @@ asm_hrb_api:
   MOV ES, AX
   CALL hrb_api
   CMP EAX, 0 ; Quit an app if EAX is not 0.
-  JNE end_app
+  JNE asm_end_app
   ADD ESP, 32
   POPAD
   POP ES
   POP DS
   IRETD
 
-end_app:
+asm_end_app:
   ; EAX is the address of tss.esp0
   MOV ESP, [EAX]
+  MOV DWORD [EAX+4], 0
   POPAD
   RET ; Return cmd_app().
 

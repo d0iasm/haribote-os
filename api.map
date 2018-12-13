@@ -1,7 +1,7 @@
 
 Discarded input sections
 
- .eh_frame      0x0000000000000000       0x38 bug1.o
+ .eh_frame      0x0000000000000000       0x34 bug2.o
 
 Memory Configuration
 
@@ -17,36 +17,36 @@ Linker script and memory map
                 0x0000000000000008        0x4 LONG 0x0
                 0x000000000000000c        0x4 LONG 0x400
                 0x0000000000000010        0x4 LONG 0x0 SIZEOF (.data)
-                0x0000000000000014        0x4 LONG 0x96 LOADADDR (.data)
+                0x0000000000000014        0x4 LONG 0x48 LOADADDR (.data)
                 0x0000000000000018        0x4 LONG 0xe9000000
                 0x000000000000001c        0x4 LONG 0x23 (hari_main - 0x20)
                 0x0000000000000020        0x4 LONG 0x6000
 
-.text           0x0000000000000030       0x66
+.text           0x0000000000000030       0x18
  *(.text)
  .text          0x0000000000000030       0x13 apifunc.o
                 0x0000000000000030                api_putchar
                 0x000000000000003c                api_end
- .text          0x0000000000000043       0x53 bug1.o
+ .text          0x0000000000000043        0x5 bug2.o
                 0x0000000000000043                hari_main
 
-.data           0x0000000000000400        0x0 load address 0x0000000000000096
+.data           0x0000000000000400        0x0 load address 0x0000000000000048
  *(.data)
- .data          0x0000000000000400        0x0 bug1.o
+ .data          0x0000000000000400        0x0 bug2.o
  *(.rodata)
  *(.bss*)
- .bss           0x0000000000000400        0x0 bug1.o
+ .bss           0x0000000000000400        0x0 bug2.o
 
 /DISCARD/
  *(.eh_frame)
 LOAD apifunc.o
-LOAD bug1.o
-OUTPUT(bug1.bin binary)
+LOAD bug2.o
+OUTPUT(bug2.bin binary)
 
 .comment        0x0000000000000000       0x2b
- .comment       0x0000000000000000       0x2b bug1.o
+ .comment       0x0000000000000000       0x2b bug2.o
 
 .note.GNU-stack
                 0x0000000000000000        0x0
  .note.GNU-stack
-                0x0000000000000000        0x0 bug1.o
+                0x0000000000000000        0x0 bug2.o
