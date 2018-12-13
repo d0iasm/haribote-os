@@ -1,25 +1,25 @@
 // console.c: Do tasks on a console.
 #include "bootpack.h"
 
-
-void console_task(struct SHEET *sheet, unsigned int memtotal) {
-  struct TIMER *timer;
-  struct TASK *task = task_now();
-  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-  int i, fifobuf[128], *fat = (int *) memman_alloc_4k(memman, 4 * 2880);
+void console_task(struct SHEET* sheet, unsigned int memtotal)
+{
+  struct TIMER* timer;
+  struct TASK* task = task_now();
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  int i, fifobuf[128], *fat = (int*)memman_alloc_4k(memman, 4 * 2880);
   struct CONSOLE cons;
   char cmdline[30];
   cons.sht = sheet;
-  cons.cur_x =  8;
+  cons.cur_x = 8;
   cons.cur_y = 28;
   cons.cur_c = -1;
-  *((int *) 0x0fec) = (int) &cons;
+  *((int*)0x0fec) = (int)&cons;
 
   fifo32_init(&task->fifo, 128, fifobuf, task);
   timer = timer_alloc();
   timer_init(timer, &task->fifo, 1);
   timer_settime(timer, 50);
-  file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
+  file_readfat(fat, (unsigned char*)(ADR_DISKIMG + 0x000200));
 
   // Show a prompt.
   cons_putchar(&cons, '>', 1);
@@ -46,14 +46,14 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
         }
         timer_settime(timer, 50);
       }
-      if (i == 2) { // Make a cursor ON. 
+      if (i == 2) { // Make a cursor ON.
         cons.cur_c = COL8_FFFFFF;
       }
       if (i == 3) { // Make a cursor OFF.
         boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
         cons.cur_c = -1;
       }
-      if (256 <= i && i <= 511) { // Keyboard data through task A. 
+      if (256 <= i && i <= 511) { // Keyboard data through task A.
         if (i == 8 + 256) {
           // Backspace.
           if (cons.cur_x > 16) {
@@ -68,18 +68,18 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
           cmdline[cons.cur_x / 8 - 2] = 0;
           cons_newline(&cons);
           // Execute a command.
-          cons_runcmd(cmdline, &cons, fat, memtotal);	
+          cons_runcmd(cmdline, &cons, fat, memtotal);
           cons_putchar(&cons, '>', 1);
         } else {
           // Normal characters.
           if (cons.cur_x < 240) {
-            // Move a cursor to the next position after one character shows.  
+            // Move a cursor to the next position after one character shows.
             cmdline[cons.cur_x / 8 - 2] = i - 256;
             cons_putchar(&cons, i - 256, 1);
           }
         }
       }
-      // Reshow a cursor.  
+      // Reshow a cursor.
       if (cons.cur_c >= 0) {
         boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
       }
@@ -88,7 +88,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
   }
 }
 
-void cons_putchar(struct CONSOLE *cons, int chr, char move) {
+void cons_putchar(struct CONSOLE* cons, int chr, char move)
+{
   char s[2];
   s[0] = chr;
   s[1] = 0;
@@ -100,14 +101,14 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move) {
         cons_newline(cons);
       }
       if (((cons->cur_x - 8) & 0x1f) == 0) {
-        break; // Break when it is divisible by 32.	
+        break; // Break when it is divisible by 32.
       }
     }
   } else if (s[0] == 0x0a) { // Insert a new line.
     cons_newline(cons);
   } else if (s[0] == 0x0d) { // Carriage return.
     // TODO: Implement it later.
-  } else { // Normal characters.	
+  } else { // Normal characters.
     putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
     if (move != 0) {
       // Don't move a cursor when |move| equals 0.
@@ -120,13 +121,14 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move) {
   return;
 }
 
-void cons_newline(struct CONSOLE *cons) {
+void cons_newline(struct CONSOLE* cons)
+{
   int x, y;
-  struct SHEET *sheet = cons->sht;
+  struct SHEET* sheet = cons->sht;
   if (cons->cur_y < 28 + 112) {
-    cons->cur_y += 16; // Move to a next line. 
+    cons->cur_y += 16; // Move to a next line.
   } else {
-    // Scroll.  
+    // Scroll.
     for (y = 28; y < 28 + 112; y++) {
       for (x = 8; x < 8 + 240; x++) {
         sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
@@ -143,7 +145,8 @@ void cons_newline(struct CONSOLE *cons) {
   return;
 }
 
-void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int memtotal) {
+void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int memtotal)
+{
   if (strcmp(cmdline, "mem") == 0) {
     cmd_mem(cons, memtotal);
   } else if (strcmp(cmdline, "clear") == 0) {
@@ -152,19 +155,20 @@ void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int mem
     cmd_ls(cons);
   } else if (strncmp(cmdline, "cat ", 4) == 0) {
     cmd_cat(cons, fat, cmdline);
-  } else if (strcmp(cmdline, "hlt") == 0) {
-    cmd_hlt(cons, fat);
   } else if (cmdline[0] != 0) {
-    // Neither a command nor a while space.  
-    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "Bad command.", 12);
-    cons_newline(cons);
-    cons_newline(cons);
+    if (cmd_app(cons, fat, cmdline) == 0) {
+      // Neither a command nor a while space.
+      putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "Bad command.", 12);
+      cons_newline(cons);
+      cons_newline(cons);
+    }
   }
   return;
 }
 
-void cmd_mem(struct CONSOLE *cons, unsigned int memtotal) {
-  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+void cmd_mem(struct CONSOLE* cons, unsigned int memtotal)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
   char s[30];
   tsprintf(s, "total %dMB", memtotal / (1024 * 1024));
   putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 30);
@@ -176,9 +180,10 @@ void cmd_mem(struct CONSOLE *cons, unsigned int memtotal) {
   return;
 }
 
-void cmd_clear(struct CONSOLE *cons) {
+void cmd_clear(struct CONSOLE* cons)
+{
   int x, y;
-  struct SHEET *sheet = cons->sht;
+  struct SHEET* sheet = cons->sht;
   for (y = 28; y < 28 + 128; y++) {
     for (x = 8; x < 8 + 240; x++) {
       sheet->buf[x + y * sheet->bxsize] = COL8_000000;
@@ -189,8 +194,9 @@ void cmd_clear(struct CONSOLE *cons) {
   return;
 }
 
-void cmd_ls(struct CONSOLE *cons) {
-  struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
+void cmd_ls(struct CONSOLE* cons)
+{
+  struct FILEINFO* finfo = (struct FILEINFO*)(ADR_DISKIMG + 0x002600);
   int i, j;
   char s[30];
   for (i = 0; i < 224; i++) {
@@ -215,19 +221,20 @@ void cmd_ls(struct CONSOLE *cons) {
   return;
 }
 
-void cmd_cat(struct CONSOLE *cons, int *fat, char *cmdline) {
-  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-  struct FILEINFO *finfo = file_search(cmdline + 4, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
-  char *p;
+void cmd_cat(struct CONSOLE* cons, int* fat, char* cmdline)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  struct FILEINFO* finfo = file_search(cmdline + 4, (struct FILEINFO*)(ADR_DISKIMG + 0x002600), 224);
+  char* p;
   int i;
   if (finfo != 0) {
-    // When a file is found.   
-    p = (char *) memman_alloc_4k(memman, finfo->size);
-    file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+    // When a file is found.
+    p = (char*)memman_alloc_4k(memman, finfo->size);
+    file_loadfile(finfo->clustno, finfo->size, p, fat, (char*)(ADR_DISKIMG + 0x003e00));
     for (i = 0; i < finfo->size; i++) {
       cons_putchar(cons, p[i], 1);
     }
-    memman_free_4k(memman, (int) p, finfo->size);
+    memman_free_4k(memman, (int)p, finfo->size);
   } else {
     // When a file is not found.
     putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
@@ -237,24 +244,44 @@ void cmd_cat(struct CONSOLE *cons, int *fat, char *cmdline) {
   return;
 }
 
-void cmd_hlt(struct CONSOLE *cons, int *fat) {
-  struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-  struct FILEINFO *finfo = file_search("HLT.BIN", (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-  char *p;
-  if (finfo != 0) {
-    // When the HLT.BIN file is found.  
-    p = (char *) memman_alloc_4k(memman, finfo->size);
-    file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-    set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER);
-    farcall(0, 1003 * 8);
-    memman_free_4k(memman, (int) p, finfo->size);
-  } else {
-    // When the HLT.BIN file is not found.  
-    putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
-    cons_newline(cons);
+int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  struct FILEINFO* finfo;
+  struct SEGMENT_DESCRIPTOR* gdt = (struct SEGMENT_DESCRIPTOR*)ADR_GDT;
+  char name[18], *p;
+  int i;
+
+  for (i = 0; i < 13; i++) {
+    if (cmdline[i] <= ' ') {
+      break;
+    }
+    name[i] = cmdline[i];
   }
-  cons_newline(cons);
-  return;
+  name[i] = 0;
+
+  finfo = file_search(name, (struct FILEINFO*)(ADR_DISKIMG + 0x002600), 224);
+  if (finfo == 0 && name[i - 1] != '.') {
+    // Search again with '.bin' extension
+    name[i] = '.';
+    name[i + 1] = 'B';
+    name[i + 2] = 'I';
+    name[i + 3] = 'N';
+    name[i + 4] = 0;
+    finfo = file_search(name, (struct FILEINFO*)(ADR_DISKIMG + 0x002600), 224);
+  }
+
+  if (finfo != 0) {
+    // Find the file.
+    p = (char*)memman_alloc_4k(memman, finfo->size);
+    file_loadfile(finfo->clustno, finfo->size, p, fat, (char*)(ADR_DISKIMG + 0x003e00));
+    set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER);
+    farcall(0, 1003 * 8);
+    memman_free_4k(memman, (int)p, finfo->size);
+    cons_newline(cons);
+    return 1;
+  }
+  // Did not find the file.
+  return 0;
 }
 
