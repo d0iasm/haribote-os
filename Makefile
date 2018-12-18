@@ -39,7 +39,9 @@ apps:
 	$(LD_API) -e hari_main -o bug2.bin apifunc.o bug2.o
 	$(GCC) -o bug3.o bug3.c
 	$(LD_API) -e hari_main -o bug3.bin apifunc.o bug3.o
-
+	$(GCC) -o winhello.o winhello.c
+	$(LD_API) -e hari_main -o winhello.bin apifunc.o winhello.o
+	
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
 
@@ -76,6 +78,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img bug2.bin ::
 	mcopy -i os.img bug3.bin ::
 	mcopy -i os.img hello4.bin ::
+	mcopy -i os.img winhello.bin ::
 
 run: os.img
 	$(QEMU) os.img
