@@ -5,7 +5,7 @@ char buf[150 * 50];
 
 void hari_main(void)
 {
-  api_putstr0("Open a new window.\n");
+  api_putstr0("Open a new window. \n");
   int win;
   win = api_openwin(buf, 150, 50, -1, "hello");
   api_end();
