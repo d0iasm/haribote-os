@@ -37,6 +37,7 @@ struct SHEET {
   unsigned char* buf;
   int bxsize, bysize, vx0, vy0, col_inv, height, flags;
   struct SHTCTL* ctl;
+  struct TASK* task;
 };
 
 struct SHTCTL { // sheet control
@@ -61,7 +62,7 @@ void sheet_free(struct SHEET* sht);
 struct CONSOLE {
   struct SHEET* sht;
   int cur_x, cur_y, cur_c;
-  struct TIMER *timer;
+  struct TIMER* timer;
 };
 
 void console_task(struct SHEET* sheet, unsigned int memtotal);
