@@ -75,6 +75,7 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline);
 void cons_putstr0(struct CONSOLE* cons, char* s);
 void cons_putstr1(struct CONSOLE* cons, char* s, int l);
 int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
+void hrb_api_linewin(struct SHEET* sht, int x0, int y0, int x1, int y1, int col);
 int* inthandler0c(int* esp);
 int* inthandler0d(int* esp);
 /* -- console.c end -- */
