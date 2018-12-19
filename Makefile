@@ -28,6 +28,8 @@ apps:
 	$(LD_API) -e hari_main -o winhello.bin apifunc.o winhello.o
 	$(GCC) -o winhello2.o winhello2.c
 	$(LD_API) -e hari_main -o winhel2.bin apifunc.o winhello2.o
+	$(GCC) -o star1.o star1.c
+	$(LD_API) -e hari_main -o star1.bin apifunc.o star1.o
 	
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -58,6 +60,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img Makefile ::
 	mcopy -i os.img winhello.bin ::
 	mcopy -i os.img winhel2.bin ::
+	mcopy -i os.img star1.bin ::
 
 run: os.img
 	$(QEMU) os.img

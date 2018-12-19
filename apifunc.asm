@@ -8,6 +8,7 @@
   global api_initmalloc
   global api_malloc
   global api_free
+  global api_point
   global api_end
 
   section .text
@@ -109,6 +110,21 @@ api_free: ; void api_free(char *addr, int size);
   mov ecx, [esp+12] ; size
   int 0x40
   pop ebx
+  ret
+
+api_point: ; void api_point(int win, int x, int y, int col);
+  push edi
+  push esi
+  push ebx
+  mov edx, 11
+  mov ebx, [esp+16] ; win
+  mov esi, [esp+20] ; x
+  mov edi, [esp+24] ; y
+  mov eax, [esp+28] ; col
+  int 0x40
+  pop ebx
+  pop esi
+  pop edi
   ret
 
 api_end: ; void api_end(void);
