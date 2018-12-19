@@ -61,6 +61,7 @@ void sheet_free(struct SHEET* sht);
 struct CONSOLE {
   struct SHEET* sht;
   int cur_x, cur_y, cur_c;
+  struct TIMER *timer;
 };
 
 void console_task(struct SHEET* sheet, unsigned int memtotal);
@@ -315,7 +316,7 @@ void farcall(int eip, int cs);
 void asm_cons_putchar(void);
 void asm_hrb_api(void);
 void asm_end_app(void);
-void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
+void start_app(int eip, int cs, int esp, int ds, int* tss_esp0);
 /* -- nasmfunc.asm end --*/
 
 /* -- nasmhead.asm start --*/

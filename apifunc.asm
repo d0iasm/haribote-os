@@ -12,6 +12,7 @@
   global api_refreshwin
   global api_linewin
   global api_closewin
+  global api_getkey
   global api_end
 
   section .text
@@ -171,6 +172,12 @@ api_closewin: ; void api_closewin(int win);
   mov ebx, [esp+8] ; win
   int 0x40
   pop ebx
+  ret
+
+api_getkey: ; int api_getkey(int mode);
+  mov edx, 15
+  mov eax, [esp+4] ; mode
+  int 0x40
   ret
 
 api_end: ; void api_end(void);
