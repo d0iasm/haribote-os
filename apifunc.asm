@@ -5,6 +5,9 @@
   global api_openwin
   global api_boxfilwin
   global api_putstrwin
+  global api_initmalloc
+  global api_malloc
+  global api_free
   global api_end
 
   section .text
@@ -75,6 +78,37 @@ api_boxfilwin: ; void api_boxfilwin(int win, int x0, int y0, int x1, int y1, int
   pop ebp
   pop esi
   pop edi
+  ret
+
+api_initmalloc: ; void api_initmalloc(void);
+  push ebx
+  mov edx, 8
+  mov ebx, [cs:0x0020] ; The address of malloc space.
+  mov eax, ebx
+  add eax, 32*1024 ; Add 32KB.
+  mov ecx, [cs:0x0000] ; The size of data segment.
+  sub ecx, eax
+  int 0x40
+  pop ebx
+  ret
+  
+api_malloc: ; char *api_malloc(int size);
+  push ebx
+  mov edx, 9
+  mov ebx, [cs:0x0020]
+  mov ecx, [esp+8] ; size
+  int 0x40
+  pop ebx
+  ret
+
+api_free: ; void api_free(char *addr, int size);
+  push ebx
+  mov edx, 10
+  mov ebx, [cs:0x0020]
+  mov eax, [esp+8] ; addr
+  mov ecx, [esp+12] ; size
+  int 0x40
+  pop ebx
   ret
 
 api_end: ; void api_end(void);

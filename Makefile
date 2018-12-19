@@ -26,6 +26,8 @@ apps:
 	$(NASM_ELF32) -o apifunc.o apifunc.asm
 	$(GCC) -o winhello.o winhello.c
 	$(LD_API) -e hari_main -o winhello.bin apifunc.o winhello.o
+	$(GCC) -o winhello2.o winhello2.c
+	$(LD_API) -e hari_main -o winhel2.bin apifunc.o winhello2.o
 	
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -55,6 +57,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img hoge.txt ::
 	mcopy -i os.img Makefile ::
 	mcopy -i os.img winhello.bin ::
+	mcopy -i os.img winhel2.bin ::
 
 run: os.img
 	$(QEMU) os.img
