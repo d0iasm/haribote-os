@@ -415,7 +415,7 @@ int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
         cons->cur_c = -1;
       }
       if (256 <= i && i <= 511) { // Keyboard data via a task A.
-        reg[7] = i - 256;
+        reg[7] = i - 256; // Write key data into EAX register.
         return 0;
       }
     }
