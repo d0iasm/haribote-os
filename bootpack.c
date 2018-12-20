@@ -201,7 +201,8 @@ void hari_main(void)
           sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
           sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
         }
-        if (i == 256 + 0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) { // Shift + F1
+        if (i == 256 + 0x01 && task_cons->tss.ss0 != 0) {
+          // Terminate forcefully when escape key is pressed.
           cons = (struct CONSOLE*)*((int*)0x0fec);
           cons_putstr0(cons, "\nBreak(key) : \n");
           io_cli();
@@ -210,6 +211,8 @@ void hari_main(void)
           task_cons->tss.eip = (int)asm_end_app;
           io_sti();
         }
+
+
 
         if (i == 256 + 0x2a) { // left shift ON
           key_shift |= 1;
