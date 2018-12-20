@@ -51,6 +51,9 @@ void hari_main(void)
   struct TIMER* timer;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
+  int j, x, y;
+  struct SHEET* sht;
+
   init_gdtidt();
   init_pic();
   io_sti();
@@ -233,19 +236,9 @@ void hari_main(void)
         }
         sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
 
-      } else if (512 <= i && i <= 767) { // mouse data
+      } else if (512 <= i && i <= 767) { // Mouse data.
         if (mouse_decode(&mdec, i - 512) != 0) {
-          // tsprintf(s, "[lcr %d %d]", mdec.x, mdec.y);
-          // if ((mdec.btn & 0x01) != 0) {
-          // s[1] = 'L';
-          // }
-          // if ((mdec.btn & 0x02) != 0) {
-          // s[3] = 'R';
-          // }
-          // if ((mdec.btn & 0x04) != 0) {
-          // s[2] = 'C';
-          // }
-          // putfonts8_asc_sht(sht_back, 32, 16, COL8_FFFFFF, COL8_008484, s, 15);
+          // Move a mouse corsor.
           mx += mdec.x;
           my += mdec.y;
           if (mx < 0) {
@@ -260,21 +253,31 @@ void hari_main(void)
           if (my > binfo->scrny - 1) {
             my = binfo->scrny - 1;
           }
-          // tsprintf(s, "(%d, %d)", mx, my);
-          // putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
           sheet_slide(sht_mouse, mx, my);
           if ((mdec.btn & 0x01) != 0) {
-            sheet_slide(sht_win, mx - 80, my - 8);
+            // Press the left button of a mouse.
+            for (j = shtctl->top - 1; j > 0; j--) {
+              // Search the window at the top.
+              sht = shtctl->sheets[j];
+              x = mx - sht->vx0;
+              y = my - sht->vy0;
+              if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
+                if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
+                  sheet_updown(sht, shtctl->top - 1);
+                  break;
+                }
+              }
+            }
           }
         }
-      } else if (i <= 1) { // timer for cursor
+      } else if (i <= 1) { // Timer for cursor.
         if (i != 0) {
-          timer_init(timer, &fifo, 0); /* Í0ð */
+          timer_init(timer, &fifo, 0);
           if (cursor_c >= 0) {
             cursor_c = COL8_000000;
           }
         } else {
-          timer_init(timer, &fifo, 1); /* Í1ð */
+          timer_init(timer, &fifo, 1);
           if (cursor_c >= 0) {
             cursor_c = COL8_FFFFFF;
           }
