@@ -51,8 +51,8 @@ void hari_main(void)
   struct TIMER* timer;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
-  int j, x, y;
-  struct SHEET* sht;
+  int j, x, y, mmx = -1, mmy = -1;
+  struct SHEET* sht = 0;
 
   init_gdtidt();
   init_pic();
@@ -129,11 +129,6 @@ void hari_main(void)
   sheet_updown(sht_cons, 1);
   sheet_updown(sht_win, 2);
   sheet_updown(sht_mouse, 3);
-  // tsprintf(s, "(%d, %d)", mx, my);
-  // putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
-  // tsprintf(s, "memory %dMB   free : %dKB",
-  // memtotal / (1024 * 1024), memman_total(memman) / 1024);
-  // putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 40);
 
   for (;;) {
     io_cli();
@@ -144,9 +139,7 @@ void hari_main(void)
       i = fifo32_get(&fifo);
       io_sti();
       if (256 <= i && i <= 511) { // keyboard data
-        // tsprintf(s, "%x", i - 256);
-        // putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-        if (i < 0x80 + 256) { // convert keycode to char code
+        if (i < 0x80 + 256) {     // convert keycode to char code
           if (key_shift == 0) {
             s[0] = keytable0[i - 256];
             if ('A' <= s[0] && s[0] <= 'Z') {
@@ -256,18 +249,36 @@ void hari_main(void)
           sheet_slide(sht_mouse, mx, my);
           if ((mdec.btn & 0x01) != 0) {
             // Press the left button of a mouse.
-            for (j = shtctl->top - 1; j > 0; j--) {
-              // Search the window at the top.
-              sht = shtctl->sheets[j];
-              x = mx - sht->vx0;
-              y = my - sht->vy0;
-              if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
-                if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
-                  sheet_updown(sht, shtctl->top - 1);
-                  break;
+            if (mmx < 0) {
+              // Normal mode.
+              // Search the window pointing by a cursor from the top.
+              for (j = shtctl->top - 1; j > 0; j--) {
+                sht = shtctl->sheets[j];
+                x = mx - sht->vx0;
+                y = my - sht->vy0;
+                if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
+                  if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
+                    sheet_updown(sht, shtctl->top - 1);
+                    if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
+                      mmx = mx; // Go to the window move mode.
+                      mmy = my;
+                    }
+                    break;
+                  }
                 }
               }
+            } else {
+              // Window move mode.
+              x = mx - mmx; // Calcurate the amount of movement.
+              y = my - mmy;
+              sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
+              mmx = mx;
+              // Update the position after moving.
+              mmy = my;
             }
+          } else {
+            // Not press the left button of a mouse.
+            mmx = -1; // Go to the normal mode.
           }
         }
       } else if (i <= 1) { // Timer for cursor.
