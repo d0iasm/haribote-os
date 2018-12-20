@@ -211,8 +211,10 @@ void hari_main(void)
           task_cons->tss.eip = (int)asm_end_app;
           io_sti();
         }
-
-
+        if (i == 256 + 0x39 && shtctl->top > 2) {
+          // Switch a window when space key is pressed.
+          sheet_updown(shtctl->sheets[1], shtctl->top - 1);
+        }
 
         if (i == 256 + 0x2a) { // left shift ON
           key_shift |= 1;
