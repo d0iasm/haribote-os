@@ -263,6 +263,17 @@ void hari_main(void)
                       mmx = mx; // Go to the window move mode.
                       mmy = my;
                     }
+                    if (sht->bxsize - 21 <= x && x < sht->bxsize - 5 && 5 <= y && y < 19) {
+                      // Click "x" button.
+                      if (sht->task != 0) { // The window created by a window or not?
+                        cons = (struct CONSOLE*)*((int*)0x0fec);
+                        cons_putstr0(cons, "\n Break(mouse) : \n");
+                        io_cli(); // To avoid to change a task while terminating forcefully.
+                        task_cons->tss.eax = (int)&(task_cons->tss.esp0);
+                        task_cons->tss.eip = (int)asm_end_app;
+                        io_sti();
+                      }
+                    }
                     break;
                   }
                 }
