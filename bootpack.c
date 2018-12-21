@@ -121,7 +121,7 @@ void hari_main(void)
   struct CONSOLE* cons;
 
   unsigned char *buf_back, buf_mouse[256], *buf_cons[2];
-  struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
+  struct SHEET *sht_back, *sht_mouse, *sht_win;
   struct TASK *task_a, *task_cons[2], *task;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
@@ -157,10 +157,6 @@ void hari_main(void)
   sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
 
-  /* sht_cons */
-  sht_cons[0] = open_console(shtctl, memtotal);
-  sht_cons[1] = 0; // Not open yet.
-
   /* sht_mouse */
   sht_mouse = sheet_alloc(shtctl);
   sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
@@ -168,13 +164,13 @@ void hari_main(void)
   mx = (binfo->scrnx - 16) / 2;
   my = (binfo->scrny - 28 - 16) / 2;
 
+  key_win = open_console(shtctl, memtotal);
   sheet_slide(sht_back, 0, 0);
-  sheet_slide(sht_cons[0], 32, 4);
+  sheet_slide(key_win, 32, 4);
   sheet_slide(sht_mouse, mx, my);
   sheet_updown(sht_back, 0);
-  sheet_updown(sht_cons[0], 1);
+  sheet_updown(key_win, 1);
   sheet_updown(sht_mouse, 2);
-  key_win = sht_cons[0];
   keywin_on(key_win);
 
   for (;;) {
@@ -244,13 +240,15 @@ void hari_main(void)
           sheet_updown(shtctl->sheets[1], shtctl->top - 1);
         }
 
-        if (i == 256 + 0x14 && key_shift != 0 && sht_cons[1] == 0) {
+        if (i == 256 + 0x14 && key_shift != 0) {
+          // This is a workaround to delete "t" character on a console.
+          fifo32_put(&key_win->task->fifo, 8 + 256);
+
           // Open a new console window when "shift + T" are pressed.
-          sht_cons[1] = open_console(shtctl, memtotal);
-          sheet_slide(sht_cons[1], 32, 4);
-          sheet_updown(sht_cons[1], shtctl->top);
           keywin_off(key_win);
-          key_win = sht_cons[1];
+          key_win = open_console(shtctl, memtotal);
+          sheet_slide(key_win, 32, 4);
+          sheet_updown(key_win, shtctl->top);
           keywin_on(key_win);
         }
 
