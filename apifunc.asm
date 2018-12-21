@@ -13,6 +13,10 @@
   global api_linewin
   global api_closewin
   global api_getkey
+  global api_alloctimer
+  global api_inittimer
+  global api_settimer
+  global api_freetimer
   global api_end
 
   section .text
@@ -178,6 +182,37 @@ api_getkey: ; int api_getkey(int mode);
   mov edx, 15
   mov eax, [esp+4] ; mode
   int 0x40
+  ret
+
+api_alloctimer: ; int api_alloctimer(void);
+  mov edx, 16
+  int 0x40
+  ret
+
+api_inittimer: ; void api_inittimer(int timer, int data);
+  push ebx
+  mov edx, 17
+  mov ebx, [esp+8] ; timer
+  mov eax, [esp+12] ; data
+  int 0x40
+  pop ebx
+  ret
+
+api_settimer: ; void api_settimer(int timer, int time);
+  push ebx
+  mov edx, 18
+  mov ebx, [esp+8] ; timer
+  mov eax, [esp+12] ; time
+  int 0x40
+  pop ebx
+  ret
+
+api_freetimer: ; void api_freetimer(int timer);
+  push ebx
+  mov edx, 19
+  mov ebx, [esp+8] ; timer
+  int 0x40
+  pop ebx
   ret
 
 api_end: ; void api_end(void);

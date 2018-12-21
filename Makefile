@@ -34,6 +34,10 @@ apps:
 	$(LD_API) -e hari_main -o lines.bin apifunc.o lines.o
 	$(GCC) -o walk.o walk.c
 	$(LD_API) -e hari_main -o walk.bin apifunc.o walk.o
+	# TODO: Fix the error
+	# ld: section .data VMA [0000000000000400,000000000000050f] overlaps section .text VMA [0000000000000030,00000000000006bd]
+	# $(GCC) -o noodle.o noodle.c
+	# $(LD_API) -e hari_main -o noodle.bin apifunc.o tsprintf.o noodle.o
 	
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -67,6 +71,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img star1.bin ::
 	mcopy -i os.img lines.bin ::
 	mcopy -i os.img walk.bin ::
+	# mcopy -i os.img noodle.bin ::
 
 run: os.img
 	$(QEMU) os.img

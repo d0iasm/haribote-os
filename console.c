@@ -415,12 +415,21 @@ int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       if (i == 3) { // Cursor OFF.
         cons->cur_c = -1;
       }
-      if (256 <= i && i <= 511) { // Keyboard data via a task A.
+      if (256 <= i) { // Keyboard data via a task A.
         reg[7] = i - 256;         // Write key data into EAX register.
         return 0;
       }
     }
+  } else if (edx == 16) {
+    reg[7] = (int)timer_alloc();
+  } else if (edx == 17) {
+    timer_init((struct TIMER*)ebx, &task->fifo, eax + 256);
+  } else if (edx == 18) {
+    timer_settime((struct TIMER*)ebx, eax);
+  } else if (edx == 19) {
+    timer_free((struct TIMER*)ebx);
   }
+
   return 0;
 }
 

@@ -14,12 +14,14 @@ SECTIONS
     LONG(24 * 1024) /* 0x0020(DWORD): Start address of heap area(malloc area). */
   }
 
+  /* The area for program code. */
   .text : { *(.text) }
 
+  /* The area for rewritable variables having initial values. */
   .data 0x0400 : AT ( ADDR(.text) + SIZEOF(.text) ) {
     *(.data)
-    *(.rodata)
-    *(.bss*)
+    *(.rodata) /* The area for const variables. */
+    *(.bss*) /* The area for variables not having initial values. */
   }
 
   /DISCARD/ : { *(.eh_frame) }
