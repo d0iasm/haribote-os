@@ -62,31 +62,22 @@ void change_wtitle8(struct SHEET* sht, char act)
   return;
 }
 
-int keywin_on(struct SHEET* key_win, struct SHEET* sht_win, int cur_c)
-{
-  change_wtitle8(key_win, 1);
-  if (key_win == sht_win) {
-    cur_c = COL8_000000; // Show a cursor.
-  } else {
-    if ((key_win->flags & 0x20) != 0) {
-      fifo32_put(&key_win->task->fifo, 2); // The cursor of a console ON.
-    }
-  }
-  return cur_c;
-}
-
-int keywin_off(struct SHEET* key_win, struct SHEET* sht_win, int cur_c, int cur_x)
+void keywin_off(struct SHEET* key_win)
 {
   change_wtitle8(key_win, 0);
-  if (key_win == sht_win) {
-    cur_c = -1; // Hidden a cursor.
-    boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cur_x, 28, cur_x + 7, 43);
-  } else {
-    if ((key_win->flags & 0x20) != 0) {
-      fifo32_put(&key_win->task->fifo, 3); // The corsur of a console OFF.
-    }
+  if ((key_win->flags & 0x20) != 0) {
+    fifo32_put(&key_win->task->fifo, 3); // The cursor of a console ON.
   }
-  return cur_c;
+  return;
+}
+
+void keywin_on(struct SHEET* key_win)
+{
+  change_wtitle8(key_win, 1);
+  if ((key_win->flags & 0x20) != 0) {
+    fifo32_put(&key_win->task->fifo, 2); // The cursor of a console OFF.
+  }
+  return;
 }
 
 void hari_main(void)
@@ -96,16 +87,15 @@ void hari_main(void)
   struct SHTCTL* shtctl;
   char s[40];
   int fifobuf[128];
-  int mx, my, i, cursor_x, cursor_c;
+  int mx, my, i;
   unsigned int memtotal;
   struct MOUSE_DEC mdec;
   struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
   struct CONSOLE* cons;
 
-  unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_cons[2];
+  unsigned char *buf_back, buf_mouse[256], *buf_cons[2];
   struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
   struct TASK *task_a, *task_cons[2], *task;
-  struct TIMER* timer;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
   int j, x, y, mmx = -1, mmy = -1;
@@ -163,18 +153,6 @@ void hari_main(void)
     sht_cons[i]->flags |= 0x20; // Cursor flag.
   }
 
-  /* sht_win */
-  sht_win = sheet_alloc(shtctl);
-  buf_win = (unsigned char*)memman_alloc_4k(memman, 160 * 52);
-  sheet_setbuf(sht_win, buf_win, 144, 52, -1);
-  make_window8(buf_win, 144, 52, "task_a", 1);
-  make_textbox8(sht_win, 8, 28, 128, 16, COL8_FFFFFF);
-  cursor_x = 8;
-  cursor_c = COL8_FFFFFF;
-  timer = timer_alloc();
-  timer_init(timer, &fifo, 1);
-  timer_settime(timer, 50);
-
   /* sht_mouse */
   sht_mouse = sheet_alloc(shtctl);
   sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
@@ -190,11 +168,9 @@ void hari_main(void)
   sheet_updown(sht_back, 0);
   sheet_updown(sht_cons[1], 1);
   sheet_updown(sht_cons[0], 2);
-  sheet_updown(sht_win, 3);
-  sheet_updown(sht_mouse, 4);
-
-  /* To switch a selected window. */
-  key_win = sht_win;
+  sheet_updown(sht_mouse, 3);
+  key_win = sht_cons[0];
+  // keywin_on(key_win);
 
   for (;;) {
     io_cli();
@@ -206,59 +182,43 @@ void hari_main(void)
       io_sti();
       if (key_win->flags == 0) { // Close a input window.
         key_win = shtctl->sheets[shtctl->top - 1];
-        cursor_c = keywin_on(key_win, sht_win, cursor_c);
       }
       if (256 <= i && i <= 511) { // Keyboard data.
         if (i < 0x80 + 256) {     // Convert keycode to char code.
           if (key_shift == 0) {
             s[0] = keytable0[i - 256];
-            if ('A' <= s[0] && s[0] <= 'Z') {
-              s[0] += 0x20;
-            }
           } else {
             s[0] = keytable1[i - 256];
           }
         } else {
           s[0] = 0;
         }
-
-        if (s[0] != 0) {            // Normal character.
-          if (key_win == sht_win) { // Task A.
-            if (cursor_x < 128) {
-              // Move to one cursor after showing a char.
-              s[1] = 0;
-              putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
-              cursor_x += 8;
-            }
-          } else { // Go to a console.
-            fifo32_put(&key_win->task->fifo, s[0] + 256);
-          }
+        if ('A' <= s[0] && s[0] <= 'Z') {
+          s[0] += 0x20;
         }
 
-        if (i == 256 + 0x0e) {      // Back space.
-          if (key_win == sht_win) { // Task A.
-            if (cursor_x > 8) {
-              // Go back one cursor after hiding a cursor.
-              putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
-              cursor_x -= 8;
-            }
-          } else { // Go to a console.
-            fifo32_put(&key_win->task->fifo, 8 + 256);
-          }
+        if (s[0] != 0) { // Normal character.
+          fifo32_put(&key_win->task->fifo, s[0] + 256);
         }
-        if (i == 256 + 0x1c) {      // Enter.
-          if (key_win != sht_win) { // Go to a console.
-            fifo32_put(&key_win->task->fifo, 10 + 256);
-          }
-        }
+
         if (i == 256 + 0x0f) { // Tab.
-          cursor_c = keywin_off(key_win, sht_win, cursor_c, cursor_x);
+          keywin_off(key_win);
           j = key_win->height - 1;
           if (j == 0) {
             j = shtctl->top - 1;
           }
           key_win = shtctl->sheets[j];
-          cursor_c = keywin_on(key_win, sht_win, cursor_c);
+          keywin_on(key_win);
+        }
+
+        if (i == 256 + 0x0e) { // Back space.
+          fifo32_put(&key_win->task->fifo, 8 + 256);
+        }
+
+        if (i == 256 + 0x1c) {      // Enter.
+          if (key_win != sht_win) { // Go to a console.
+            fifo32_put(&key_win->task->fifo, 10 + 256);
+          }
         }
 
         if (i == 256 + 0x01 && key_shift != 0) {
@@ -291,10 +251,6 @@ void hari_main(void)
         if (i == 256 + 0xb6) { // right shift OFF
           key_shift &= ~2;
         }
-        if (cursor_c >= 0) {
-          boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-        }
-        sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
 
       } else if (512 <= i && i <= 767) { // Mouse data.
         if (mouse_decode(&mdec, i - 512) != 0) {
@@ -328,9 +284,9 @@ void hari_main(void)
                     sheet_updown(sht, shtctl->top - 1);
                     if (sht != key_win) {
                       // Change a focused window by click.
-                      cursor_c = keywin_off(key_win, sht_win, cursor_c, cursor_x);
+                      keywin_off(key_win);
                       key_win = sht;
-                      cursor_c = keywin_on(key_win, sht_win, cursor_c);
+                      keywin_on(key_win);
                     }
                     if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
                       mmx = mx; // Go to the window move mode.
@@ -364,23 +320,6 @@ void hari_main(void)
             // Not press the left button of a mouse.
             mmx = -1; // Go to the normal mode.
           }
-        }
-      } else if (i <= 1) { // Timer for cursor.
-        if (i != 0) {
-          timer_init(timer, &fifo, 0);
-          if (cursor_c >= 0) {
-            cursor_c = COL8_000000;
-          }
-        } else {
-          timer_init(timer, &fifo, 1);
-          if (cursor_c >= 0) {
-            cursor_c = COL8_FFFFFF;
-          }
-        }
-        timer_settime(timer, 50);
-        if (cursor_c >= 0) {
-          boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-          sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
         }
       }
     }
