@@ -292,6 +292,7 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
         }
       }
 
+      timer_cancelall(&task->fifo);
       memman_free_4k(memman, (int)q, segsiz);
     } else {
       cons_putstr0(cons, "File format error.\n");
@@ -415,13 +416,14 @@ int* hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       if (i == 3) { // Cursor OFF.
         cons->cur_c = -1;
       }
-      if (256 <= i) { // Keyboard data via a task A.
-        reg[7] = i - 256;         // Write key data into EAX register.
+      if (256 <= i) {     // Keyboard data via a task A.
+        reg[7] = i - 256; // Write key data into EAX register.
         return 0;
       }
     }
   } else if (edx == 16) {
     reg[7] = (int)timer_alloc();
+    ((struct TIMER*)reg[7])->flags2 = 1; // Enable automatic cancel.
   } else if (edx == 17) {
     timer_init((struct TIMER*)ebx, &task->fifo, eax + 256);
   } else if (edx == 18) {
