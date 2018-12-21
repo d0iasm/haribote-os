@@ -87,12 +87,24 @@ void sheet_refreshmap(struct SHTCTL* ctl, int vx0, int vy0, int vx1, int vy1, in
     if (by1 > sht->bysize) {
       by1 = sht->bysize;
     }
-    for (by = by0; by < by1; by++) {
-      vy = sht->vy0 + by;
-      for (bx = bx0; bx < bx1; bx++) {
-        vx = sht->vx0 + bx;
-        if (buf[by * sht->bxsize + bx] != sht->col_inv) {
+    if (sht->col_inv == -1) {
+      // No transparent color.
+      for (by = by0; by < by1; by++) {
+        vy = sht->vy0 + by;
+        for (bx = bx0; bx < bx1; bx++) {
+          vx = sht->vx0 + bx;
           map[vy * ctl->xsize + vx] = sid;
+        }
+      }
+    } else {
+      // Transparent color.
+      for (by = by0; by < by1; by++) {
+        vy = sht->vy0 + by;
+        for (bx = bx0; bx < bx1; bx++) {
+          vx = sht->vx0 + bx;
+          if (buf[by * sht->bxsize + bx] != sht->col_inv) {
+            map[vy * ctl->xsize + vx] = sid;
+          }
         }
       }
     }
