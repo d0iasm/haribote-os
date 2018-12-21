@@ -146,6 +146,34 @@ void cons_newline(struct CONSOLE* cons)
   return;
 }
 
+struct SHEET* open_console(struct SHTCTL* shtctl, unsigned int memtotal)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  struct SHEET* sht = sheet_alloc(shtctl);
+  unsigned char* buf = (unsigned char*)memman_alloc_4k(memman, 256 * 165);
+  struct TASK* task = task_alloc();
+  int* cons_fifo = (int*)memman_alloc_4k(memman, 128 * 4);
+  sheet_setbuf(sht, buf, 256, 165, -1); // No transparent color.
+  make_window8(buf, 256, 165, "console", 0);
+  make_textbox8(sht, 8, 28, 240, 128, COL8_000000);
+  task->cons_stack = memman_alloc_4k(memman, 64 * 1024);
+  task->tss.esp = task->cons_stack + 64 * 1024 - 12;
+  task->tss.eip = (int)&console_task;
+  task->tss.es = 1 * 8;
+  task->tss.cs = 2 * 8;
+  task->tss.ss = 1 * 8;
+  task->tss.ds = 1 * 8;
+  task->tss.fs = 1 * 8;
+  task->tss.gs = 1 * 8;
+  *((int*)(task->tss.esp + 4)) = (int)sht;
+  *((int*)(task->tss.esp + 8)) = memtotal;
+  task_run(task, 2, 2); /* level=2, priority=2 */
+  sht->task = task;
+  sht->flags |= 0x20; // Cursor flag.
+  fifo32_init(&task->fifo, 128, cons_fifo, task);
+  return sht;
+}
+
 void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int memtotal)
 {
   if (strcmp(cmdline, "mem") == 0) {
@@ -158,6 +186,8 @@ void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int mem
     cmd_cat(cons, fat, cmdline);
   } else if (strcmp(cmdline, "exit") == 0) {
     cmd_exit(cons, fat);
+  } else if (strncmp(cmdline, "start ", 6) == 0) {
+    cmd_start(cons, cmdline, memtotal);
   } else if (cmdline[0] != 0) {
     if (cmd_app(cons, fat, cmdline) == 0) {
       // Neither a command nor a while space.
@@ -251,6 +281,23 @@ void cmd_exit(struct CONSOLE* cons, int* fat)
   for (;;) {
     task_sleep(task);
   }
+}
+
+void cmd_start(struct CONSOLE* cons, char* cmdline, int memtotal)
+{
+  struct SHTCTL* shtctl = (struct SHTCTL*)*((int*)0x0fe4);
+  struct SHEET* sht = open_console(shtctl, memtotal);
+  struct FIFO32* fifo = &sht->task->fifo;
+  int i;
+  sheet_slide(sht, 32, 4);
+  sheet_updown(sht, shtctl->top);
+  // Input each character into a new console.
+  for (i = 6; cmdline[i] != 0; i++) {
+    fifo32_put(fifo, cmdline[i] + 256);
+  }
+  fifo32_put(fifo, 10 + 256); // Enter.
+  cons_newline(cons);
+  return;
 }
 
 int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
