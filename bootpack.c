@@ -226,11 +226,11 @@ void hari_main(void)
         if (i == 256 + 0x01 && key_shift != 0) {
           // Terminate forcefully when escape key is pressed.
           task = key_win->task;
-          if (task != 0 && task_cons[0]->tss.ss0 != 0) {
-            cons_putstr0(task->cons, "\nBreak(key) : \n");
+          if (task != 0 && task->tss.ss0 != 0) {
+            cons_putstr0(task->cons, "\nBreak(key) :\n");
             io_cli();
             // Avoid to change a task while changing registers.
-            task->tss.eax = (int)&(task_cons[0]->tss.esp0);
+            task->tss.eax = (int)&(task->tss.esp0);
             task->tss.eip = (int)asm_end_app;
             io_sti();
           }
@@ -300,7 +300,7 @@ void hari_main(void)
                         task = sht->task;
                         cons_putstr0(task->cons, "\n Break(mouse) : \n");
                         io_cli(); // To avoid to change a task while terminating forcefully.
-                        task->tss.eax = (int)&(task_cons[0]->tss.esp0);
+                        task->tss.eax = (int)&(task->tss.esp0);
                         task->tss.eip = (int)asm_end_app;
                         io_sti();
                       }
