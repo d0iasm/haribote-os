@@ -102,9 +102,9 @@ void hari_main(void)
   struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
   struct CONSOLE* cons;
 
-  unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_cons;
-  struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
-  struct TASK *task_a, *task_cons;
+  unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_cons[2];
+  struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
+  struct TASK *task_a, *task_cons[2];
   struct TIMER* timer;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
@@ -141,23 +141,27 @@ void hari_main(void)
   init_screen8(buf_back, binfo->scrnx, binfo->scrny);
 
   /* sht_cons */
-  sht_cons = sheet_alloc(shtctl);
-  buf_cons = (unsigned char*)memman_alloc_4k(memman, 256 * 165);
-  sheet_setbuf(sht_cons, buf_cons, 256, 165, -1);
-  make_window8(buf_cons, 256, 165, "console", 0);
-  make_textbox8(sht_cons, 8, 28, 240, 128, COL8_000000);
-  task_cons = task_alloc();
-  task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
-  task_cons->tss.eip = (int)&console_task;
-  task_cons->tss.es = 1 * 8;
-  task_cons->tss.cs = 2 * 8;
-  task_cons->tss.ss = 1 * 8;
-  task_cons->tss.ds = 1 * 8;
-  task_cons->tss.fs = 1 * 8;
-  task_cons->tss.gs = 1 * 8;
-  *((int*)(task_cons->tss.esp + 4)) = (int)sht_cons;
-  *((int*)(task_cons->tss.esp + 8)) = memtotal;
-  task_run(task_cons, 2, 2); /* level=2, priority=2 */
+  for (i = 0; i < 2; i++) {
+    sht_cons[i] = sheet_alloc(shtctl);
+    buf_cons[i] = (unsigned char*)memman_alloc_4k(memman, 256 * 165);
+    sheet_setbuf(sht_cons[i], buf_cons[i], 256, 165, -1); // No transparent color.
+    make_window8(buf_cons[i], 256, 165, "console", 0);
+    make_textbox8(sht_cons[i], 8, 28, 240, 128, COL8_000000);
+    task_cons[i] = task_alloc();
+    task_cons[i]->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
+    task_cons[i]->tss.eip = (int)&console_task;
+    task_cons[i]->tss.es = 1 * 8;
+    task_cons[i]->tss.cs = 2 * 8;
+    task_cons[i]->tss.ss = 1 * 8;
+    task_cons[i]->tss.ds = 1 * 8;
+    task_cons[i]->tss.fs = 1 * 8;
+    task_cons[i]->tss.gs = 1 * 8;
+    *((int*)(task_cons[i]->tss.esp + 4)) = (int)sht_cons[i];
+    *((int*)(task_cons[i]->tss.esp + 8)) = memtotal;
+    task_run(task_cons[i], 2, 2); // level=2, priority=2.
+    sht_cons[i]->task = task_cons[i];
+    sht_cons[i]->flags |= 0x20; // Cursor flag.
+  }
 
   /* sht_win */
   sht_win = sheet_alloc(shtctl);
@@ -179,18 +183,18 @@ void hari_main(void)
   my = (binfo->scrny - 28 - 16) / 2;
 
   sheet_slide(sht_back, 0, 0);
-  sheet_slide(sht_cons, 32, 4);
+  sheet_slide(sht_cons[1], 56, 6);
+  sheet_slide(sht_cons[0], 8, 2);
   sheet_slide(sht_win, 64, 56);
   sheet_slide(sht_mouse, mx, my);
   sheet_updown(sht_back, 0);
-  sheet_updown(sht_cons, 1);
-  sheet_updown(sht_win, 2);
-  sheet_updown(sht_mouse, 3);
+  sheet_updown(sht_cons[1], 1);
+  sheet_updown(sht_cons[0], 2);
+  sheet_updown(sht_win, 3);
+  sheet_updown(sht_mouse, 4);
 
   /* To switch a selected window. */
   key_win = sht_win;
-  sht_cons->task = task_cons;
-  sht_cons->flags |= 0x20; // Cursor flag.
 
   for (;;) {
     io_cli();
@@ -227,7 +231,7 @@ void hari_main(void)
               cursor_x += 8;
             }
           } else { // Go to a console.
-            fifo32_put(&task_cons->fifo, s[0] + 256);
+            fifo32_put(&key_win->task->fifo, s[0] + 256);
           }
         }
 
@@ -239,12 +243,12 @@ void hari_main(void)
               cursor_x -= 8;
             }
           } else { // Go to a console.
-            fifo32_put(&task_cons->fifo, 8 + 256);
+            fifo32_put(&key_win->task->fifo, 8 + 256);
           }
         }
         if (i == 256 + 0x1c) {      // Enter.
           if (key_win != sht_win) { // Go to a console.
-            fifo32_put(&task_cons->fifo, 10 + 256);
+            fifo32_put(&key_win->task->fifo, 10 + 256);
           }
         }
         if (i == 256 + 0x0f) { // Tab.
@@ -255,17 +259,15 @@ void hari_main(void)
           }
           key_win = shtctl->sheets[j];
           cursor_c = keywin_on(key_win, sht_win, cursor_c);
-          // sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
-          // sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
         }
-        if (i == 256 + 0x01 && task_cons->tss.ss0 != 0) {
+        if (i == 256 + 0x01 && task_cons[0]->tss.ss0 != 0) {
           // Terminate forcefully when escape key is pressed.
           cons = (struct CONSOLE*)*((int*)0x0fec);
           cons_putstr0(cons, "\nBreak(key) : \n");
           io_cli();
           // Avoid to change a task while changing registers.
-          task_cons->tss.eax = (int)&(task_cons->tss.esp0);
-          task_cons->tss.eip = (int)asm_end_app;
+          task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
+          task_cons[0]->tss.eip = (int)asm_end_app;
           io_sti();
         }
         if (i == 256 + 0x39 && shtctl->top > 2) {
@@ -336,8 +338,8 @@ void hari_main(void)
                         cons = (struct CONSOLE*)*((int*)0x0fec);
                         cons_putstr0(cons, "\n Break(mouse) : \n");
                         io_cli(); // To avoid to change a task while terminating forcefully.
-                        task_cons->tss.eax = (int)&(task_cons->tss.esp0);
-                        task_cons->tss.eip = (int)asm_end_app;
+                        task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
+                        task_cons[0]->tss.eip = (int)asm_end_app;
                         io_sti();
                       }
                     }
