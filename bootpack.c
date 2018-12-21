@@ -80,26 +80,6 @@ void keywin_on(struct SHEET* key_win)
   return;
 }
 
-void close_constask(struct TASK* task)
-{
-  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
-  task_sleep(task);
-  memman_free_4k(memman, task->cons_stack, 64 * 1024);
-  memman_free_4k(memman, (int)task->fifo.buf, 128 * 4);
-  task->flags = 0; // task_free(task);
-  return;
-}
-
-void close_console(struct SHEET* sht)
-{
-  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
-  struct TASK* task = sht->task;
-  memman_free_4k(memman, (int)sht->buf, 256 * 165);
-  sheet_free(sht);
-  close_constask(task);
-  return;
-}
-
 void hari_main(void)
 {
   struct BOOTINFO* binfo = (struct BOOTINFO*)ADR_BOOTINFO;
@@ -232,6 +212,7 @@ void hari_main(void)
             task->tss.eax = (int)&(task->tss.esp0);
             task->tss.eip = (int)asm_end_app;
             io_sti();
+            task_run(task, -1, 0);
           }
         }
 
@@ -316,6 +297,7 @@ void hari_main(void)
                         task->tss.eax = (int)&(task->tss.esp0);
                         task->tss.eip = (int)asm_end_app;
                         io_sti();
+                        task_run(task, -1, 0);
                       } else { // Console.
                         task = sht->task;
                         io_cli();

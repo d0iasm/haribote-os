@@ -69,6 +69,8 @@ void console_task(struct SHEET* sheet, unsigned int memtotal);
 void cons_putchar(struct CONSOLE* cons, int chr, char move);
 void cons_newline(struct CONSOLE* cons);
 struct SHEET* open_console(struct SHTCTL* shtctl, unsigned int memtotal);
+void close_constask(struct TASK* task);
+void close_console(struct SHEET* sht);
 void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int memtotal);
 void cmd_mem(struct CONSOLE* cons, unsigned int memtotal);
 void cmd_clear(struct CONSOLE* cons);
@@ -96,6 +98,7 @@ int* inthandler0d(int* esp);
 #define AR_CODE32_ER 0x409a
 #define AR_INTGATE32 0x008e
 #define AR_TSS32 0x0089
+#define AR_LDT 0x0082
 
 // Each GDT size is 8 bytes and there are 8192 segmentations (0~8191)
 // GDT is global segment descriptor table
@@ -271,6 +274,7 @@ struct TASK {
   int level, priority;
   struct FIFO32 fifo;
   struct TSS32 tss;
+  struct SEGMENT_DESCRIPTOR ldt[2];
   struct CONSOLE *cons;
   int ds_base, cons_stack;
 };

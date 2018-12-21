@@ -174,6 +174,26 @@ struct SHEET* open_console(struct SHTCTL* shtctl, unsigned int memtotal)
   return sht;
 }
 
+void close_constask(struct TASK* task)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  task_sleep(task);
+  memman_free_4k(memman, task->cons_stack, 64 * 1024);
+  memman_free_4k(memman, (int)task->fifo.buf, 128 * 4);
+  task->flags = 0; // task_free(task);
+  return;
+}
+
+void close_console(struct SHEET* sht)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  struct TASK* task = sht->task;
+  memman_free_4k(memman, (int)sht->buf, 256 * 165);
+  sheet_free(sht);
+  close_constask(task);
+  return;
+}
+
 void cons_runcmd(char* cmdline, struct CONSOLE* cons, int* fat, unsigned int memtotal)
 {
   if (strcmp(cmdline, "mem") == 0) {
