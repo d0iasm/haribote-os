@@ -86,7 +86,7 @@ void hari_main(void)
   struct FIFO32 fifo;
   struct SHTCTL* shtctl;
   char s[40];
-  int fifobuf[128];
+  int fifobuf[128], *cons_fifo[2];
   int mx, my, i;
   unsigned int memtotal;
   struct MOUSE_DEC mdec;
@@ -151,6 +151,8 @@ void hari_main(void)
     task_run(task_cons[i], 2, 2); // level=2, priority=2.
     sht_cons[i]->task = task_cons[i];
     sht_cons[i]->flags |= 0x20; // Cursor flag.
+    cons_fifo[i] = (int*)memman_alloc_4k(memman, 128 * 4);
+    fifo32_init(&task_cons[i]->fifo, 128, cons_fifo[i], task_cons[i]);
   }
 
   /* sht_mouse */
@@ -170,7 +172,7 @@ void hari_main(void)
   sheet_updown(sht_cons[0], 2);
   sheet_updown(sht_mouse, 3);
   key_win = sht_cons[0];
-  // keywin_on(key_win);
+  keywin_on(key_win);
 
   for (;;) {
     io_cli();
