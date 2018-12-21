@@ -203,9 +203,6 @@ void hari_main(void)
     } else {
       i = fifo32_get(&fifo);
       io_sti();
-      // if (key_win->flags == 0) { // Close a input window.
-      // key_win = shtctl->sheets[shtctl->top - 1];
-      // }
       if (key_win != 0 && key_win->flags == 0) { // Close a window.
         if (shtctl->top == 1) {                  // There are only a mouse and background sheet.
           key_win = 0;
@@ -343,9 +340,14 @@ void hari_main(void)
                       if ((sht->flags & 0x10) != 0) { // The window created by a window or not?
                         task = sht->task;
                         cons_putstr0(task->cons, "\n Break(mouse) : \n");
-                        io_cli(); // To avoid to change a task while terminating forcefully.
+                        io_cli(); // Avoid to change a task while terminating forcefully.
                         task->tss.eax = (int)&(task->tss.esp0);
                         task->tss.eip = (int)asm_end_app;
+                        io_sti();
+                      } else { // Console.
+                        task = sht->task;
+                        io_cli();
+                        fifo32_put(&task->fifo, 4);
                         io_sti();
                       }
                     }
