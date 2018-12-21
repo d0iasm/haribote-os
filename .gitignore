@@ -37,3 +37,6 @@
 *.img
 *.o
 *.sys
+
+# Images
+images/
