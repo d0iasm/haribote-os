@@ -90,7 +90,8 @@ struct SHEET* open_console(struct SHTCTL* shtctl, unsigned int memtotal)
   sheet_setbuf(sht, buf, 256, 165, -1); // No transparent color.
   make_window8(buf, 256, 165, "console", 0);
   make_textbox8(sht, 8, 28, 240, 128, COL8_000000);
-  task->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
+  task->cons_stack = memman_alloc_4k(memman, 64 * 1024);
+  task->tss.esp = task->cons_stack + 64 * 1024 - 12;
   task->tss.eip = (int)&console_task;
   task->tss.es = 1 * 8;
   task->tss.cs = 2 * 8;
@@ -105,6 +106,26 @@ struct SHEET* open_console(struct SHTCTL* shtctl, unsigned int memtotal)
   sht->flags |= 0x20; // Cursor flag.
   fifo32_init(&task->fifo, 128, cons_fifo, task);
   return sht;
+}
+
+void close_constask(struct TASK* task)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  task_sleep(task);
+  memman_free_4k(memman, task->cons_stack, 64 * 1024);
+  memman_free_4k(memman, (int)task->fifo.buf, 128 * 4);
+  task->flags = 0; // task_free(task);
+  return;
+}
+
+void close_console(struct SHEET* sht)
+{
+  struct MEMMAN* memman = (struct MEMMAN*)MEMMAN_ADDR;
+  struct TASK* task = sht->task;
+  memman_free_4k(memman, (int)sht->buf, 256 * 165);
+  sheet_free(sht);
+  close_constask(task);
+  return;
 }
 
 void hari_main(void)
@@ -150,6 +171,7 @@ void hari_main(void)
   task_run(task_a, 1, 2);
 
   *((int*)0x0fe4) = (int)shtctl;
+  *((int*)0x0fec) = (int)&fifo;
 
   /* sht_back */
   sht_back = sheet_alloc(shtctl);
@@ -181,9 +203,18 @@ void hari_main(void)
     } else {
       i = fifo32_get(&fifo);
       io_sti();
-      if (key_win->flags == 0) { // Close a input window.
-        key_win = shtctl->sheets[shtctl->top - 1];
+      // if (key_win->flags == 0) { // Close a input window.
+      // key_win = shtctl->sheets[shtctl->top - 1];
+      // }
+      if (key_win != 0 && key_win->flags == 0) { // Close a window.
+        if (shtctl->top == 1) {                  // There are only a mouse and background sheet.
+          key_win = 0;
+        } else {
+          key_win = shtctl->sheets[shtctl->top - 1];
+          keywin_on(key_win);
+        }
       }
+
       if (256 <= i && i <= 511) { // Keyboard data.
         if (i < 0x80 + 256) {     // Convert keycode to char code.
           if (key_shift == 0) {
@@ -198,11 +229,11 @@ void hari_main(void)
           s[0] += 0x20;
         }
 
-        if (s[0] != 0) { // Normal character.
+        if (s[0] != 0 && key_win != 0) { // Normal character.
           fifo32_put(&key_win->task->fifo, s[0] + 256);
         }
 
-        if (i == 256 + 0x0f) { // Tab.
+        if (i == 256 + 0x0f && key_win != 0) { // Tab.
           keywin_off(key_win);
           j = key_win->height - 1;
           if (j == 0) {
@@ -212,17 +243,17 @@ void hari_main(void)
           keywin_on(key_win);
         }
 
-        if (i == 256 + 0x0e) { // Back space.
+        if (i == 256 + 0x0e && key_win != 0) { // Back space.
           fifo32_put(&key_win->task->fifo, 8 + 256);
         }
 
-        if (i == 256 + 0x1c) {      // Enter.
-          if (key_win != sht_win) { // Go to a console.
+        if (i == 256 + 0x1c && key_win != 0) { // Enter.
+          if (key_win != sht_win) {            // Go to a console.
             fifo32_put(&key_win->task->fifo, 10 + 256);
           }
         }
 
-        if (i == 256 + 0x01) {
+        if (i == 256 + 0x01 && key_win != 0) {
           // Terminate forcefully when escape key is pressed.
           task = key_win->task;
           if (task != 0 && task->tss.ss0 != 0) {
@@ -245,7 +276,9 @@ void hari_main(void)
           fifo32_put(&key_win->task->fifo, 8 + 256);
 
           // Open a new console window when "shift + T" are pressed.
-          keywin_off(key_win);
+          if (key_win != 0) {
+            keywin_off(key_win);
+          }
           key_win = open_console(shtctl, memtotal);
           sheet_slide(key_win, 32, 4);
           sheet_updown(key_win, shtctl->top);
@@ -334,6 +367,10 @@ void hari_main(void)
             mmx = -1; // Go to the normal mode.
           }
         }
+
+      } else if (768 <= i && i <= 1023) {
+        // Close a console.
+        close_console(shtctl->sheets0 + (i - 768));
       }
     }
   }
