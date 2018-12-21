@@ -104,7 +104,7 @@ void hari_main(void)
 
   unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_cons[2];
   struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
-  struct TASK *task_a, *task_cons[2];
+  struct TASK *task_a, *task_cons[2], *task;
   struct TIMER* timer;
   int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7;
 
@@ -208,8 +208,8 @@ void hari_main(void)
         key_win = shtctl->sheets[shtctl->top - 1];
         cursor_c = keywin_on(key_win, sht_win, cursor_c);
       }
-      if (256 <= i && i <= 511) { // keyboard data
-        if (i < 0x80 + 256) {     // convert keycode to char code
+      if (256 <= i && i <= 511) { // Keyboard data.
+        if (i < 0x80 + 256) {     // Convert keycode to char code.
           if (key_shift == 0) {
             s[0] = keytable0[i - 256];
             if ('A' <= s[0] && s[0] <= 'Z') {
@@ -260,16 +260,20 @@ void hari_main(void)
           key_win = shtctl->sheets[j];
           cursor_c = keywin_on(key_win, sht_win, cursor_c);
         }
-        if (i == 256 + 0x01 && task_cons[0]->tss.ss0 != 0) {
+
+        if (i == 256 + 0x01 && key_shift != 0) {
           // Terminate forcefully when escape key is pressed.
-          cons = (struct CONSOLE*)*((int*)0x0fec);
-          cons_putstr0(cons, "\nBreak(key) : \n");
-          io_cli();
-          // Avoid to change a task while changing registers.
-          task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
-          task_cons[0]->tss.eip = (int)asm_end_app;
-          io_sti();
+          task = key_win->task;
+          if (task != 0 && task_cons[0]->tss.ss0 != 0) {
+            cons_putstr0(task->cons, "\nBreak(key) : \n");
+            io_cli();
+            // Avoid to change a task while changing registers.
+            task->tss.eax = (int)&(task_cons[0]->tss.esp0);
+            task->tss.eip = (int)asm_end_app;
+            io_sti();
+          }
         }
+
         if (i == 256 + 0x39 && shtctl->top > 2) {
           // Switch a window when space key is pressed.
           sheet_updown(shtctl->sheets[1], shtctl->top - 1);
@@ -335,11 +339,11 @@ void hari_main(void)
                     if (sht->bxsize - 21 <= x && x < sht->bxsize - 5 && 5 <= y && y < 19) {
                       // Click "x" button.
                       if ((sht->flags & 0x10) != 0) { // The window created by a window or not?
-                        cons = (struct CONSOLE*)*((int*)0x0fec);
-                        cons_putstr0(cons, "\n Break(mouse) : \n");
+                        task = sht->task;
+                        cons_putstr0(task->cons, "\n Break(mouse) : \n");
                         io_cli(); // To avoid to change a task while terminating forcefully.
-                        task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
-                        task_cons[0]->tss.eip = (int)asm_end_app;
+                        task->tss.eax = (int)&(task_cons[0]->tss.esp0);
+                        task->tss.eip = (int)asm_end_app;
                         io_sti();
                       }
                     }
