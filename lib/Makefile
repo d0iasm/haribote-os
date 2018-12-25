@@ -23,7 +23,7 @@ build: $(OBJS)
 build_ar_only: build
 	$(DEL) *.o
 
-check_ar: build
+check_ar: build_ar_only
 	ar t libc.a
 
 clean:
