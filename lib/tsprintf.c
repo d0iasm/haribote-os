@@ -1,3 +1,11 @@
+void strcls(char* str);
+int figure(int value, int n);
+void int2char(char*, int);
+void int2hex(char*, int, int);
+void int2dec(char*, int);
+void int2str(char*, int);
+void int2float(char*, int);
+
 int tsprintf(char* str, const char* fmt, ...)
 {
   int* arg = (int*)(&str + 2); // 可変個引数の配列
