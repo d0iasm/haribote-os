@@ -10,8 +10,7 @@ NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda
 
-FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o window.o
-OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c)) 
 
 APILIBPATH = ./apilib/
 APPPATH = ./app/
@@ -27,27 +26,6 @@ default:
 
 map:
 	$(LD) -Map=bootpack.map -e hari_main -o bootpack.bin $(FILES)
-
-apps:
-	$(NASM_ELF32) -o apifunc.o apifunc.asm
-	$(GCC) -o winhello.o winhello.c
-	$(LD_API) -e hari_main -o winhello.bin apifunc.o winhello.o
-	$(GCC) -o winhello2.o winhello2.c
-	$(LD_API) -e hari_main -o winhel2.bin apifunc.o winhello2.o
-	$(GCC) -o star1.o star1.c
-	$(LD_API) -e hari_main -o star1.bin apifunc.o star1.o
-	$(GCC) -o lines.o lines.c
-	$(LD_API) -e hari_main -o lines.bin apifunc.o lines.o
-	$(GCC) -o walk.o walk.c
-	$(LD_API) -e hari_main -o walk.bin apifunc.o walk.o
-	$(GCC) -o color.o color.c
-	$(LD_API) -e hari_main -o color.bin apifunc.o color.o
-	$(GCC) -o color2.o color2.c
-	$(LD_API) -e hari_main -o color2.bin apifunc.o color2.o
-	# TODO: Fix the error
-	# ld: section .data VMA [0000000000000400,000000000000050f] overlaps section .text VMA [0000000000000030,00000000000006bd]
-	# $(GCC) -o noodle.o noodle.c
-	# $(LD_API) -e hari_main -o noodle.bin apifunc.o tsprintf.o noodle.o
 	
 ipl.bin: ipl10.asm
 	$(NASM) -o ipl10.bin ipl10.asm
@@ -58,8 +36,8 @@ nasmhead.bin: nasmhead.asm
 nasmfunc.o: nasmfunc.asm
 	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
-bootpack.bin: $(FILES)
-	$(LD) -e hari_main -o bootpack.bin $(FILES) $(FONTPATH)hankaku.o $(LIBPATH)libc.a
+bootpack.bin: $(OBJS) nasmfunc.o
+	$(LD) -e hari_main -o bootpack.bin nasmfunc.o $(OBJS) $(FONTPATH)hankaku.o $(LIBPATH)libc.a
 
 os.sys: nasmhead.bin bootpack.bin
 	cat nasmhead.bin bootpack.bin > os.sys
@@ -74,26 +52,25 @@ os.sys: nasmhead.bin bootpack.bin
 os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B ipl10.bin -i os.img ::
 	mcopy -i os.img os.sys ::
-	mcopy -i os.img Makefile ::
-	mcopy -i os.img winhello.bin ::
-	mcopy -i os.img winhel2.bin ::
-	mcopy -i os.img star1.bin ::
-	mcopy -i os.img lines.bin ::
-	mcopy -i os.img walk.bin ::
-	mcopy -i os.img color.bin ::
-	mcopy -i os.img color2.bin ::
-	# mcopy -i os.img noodle.bin ::
+	mcopy -i os.img $(APPPATH)winhello.bin ::
+	mcopy -i os.img $(APPPATH)winhel2.bin ::
+	mcopy -i os.img $(APPPATH)star1.bin ::
+	mcopy -i os.img $(APPPATH)lines.bin ::
+	mcopy -i os.img $(APPPATH)walk.bin ::
+	mcopy -i os.img $(APPPATH)color.bin ::
+	mcopy -i os.img $(APPPATH)color2.bin ::
+	# mcopy -i os.img $(APPPATH)noodle.bin ::
 
 run: os.img
 	$(QEMU) os.img
 
 clean:
-	rm -f *.bin
-	rm -f *.lst
-	rm -f *.img
-	rm -f *.o
-	rm -f *.sys
-	rm -f *.map
+	$(DEL) *.bin
+	$(DEL) *.lst
+	$(DEL) *.img
+	$(DEL) *.o
+	$(DEL) *.sys
+	$(DEL) *.map
 
 debug:
 	$(QEMU) os.img -gdb tcp::10000 -S
