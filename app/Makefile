@@ -1,4 +1,5 @@
-# The makefile of haribote OS
+# The makefile for applications.
+
 DEL = rm -f
 GCC = gcc -c -m32 -fno-pic -nostdlib
 LD_API = ld --gc-sections -m elf_i386 -T api.ls
