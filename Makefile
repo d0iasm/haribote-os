@@ -52,7 +52,7 @@ os.sys: nasmhead.bin bootpack.bin
 os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B ipl10.bin -i os.img ::
 	mcopy -i os.img os.sys ::
-	mcopy -i os.img $(APPPATH)winhello.bin ::
+	mcopy -i os.img $(APPPATH)winhel.bin ::
 	mcopy -i os.img $(APPPATH)winhel2.bin ::
 	mcopy -i os.img $(APPPATH)star1.bin ::
 	mcopy -i os.img $(APPPATH)lines.bin ::
