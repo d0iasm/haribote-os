@@ -1,5 +1,3 @@
-#include "bootpack.h"
-
 int tsprintf(char* str, const char* fmt, ...)
 {
   int* arg = (int*)(&str + 2); // 可変個引数の配列

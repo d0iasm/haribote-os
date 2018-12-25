@@ -1,15 +1,4 @@
-// libs.c: Self made libraries.
-#include "bootpack.h"
-
-
-int strcmp(const char* s1, const char* s2) {
-  // Return 0 when |s1| and |s2| are identical.
-  while(*s1 && (*s1 == *s2)) {
-    s1++;
-    s2++;
-  }
-  return *(const unsigned char*)s1 - *(const unsigned char*)s2;
-}
+// strncmp.c: Compare strings with N characters from the top.
 
 int strncmp(const char* s1, const char* s2, const int n) {
   // Return 0 when the top |n| characters of |s1| and |s2| are identical.

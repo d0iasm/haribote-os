@@ -1,8 +1,8 @@
 # The makefile of haribote OS
 DEL = rm -f
 GCC = gcc -c -m32 -fno-pic -nostdlib
-LD = ld -m elf_i386 -T os.ls
-LD_API = ld -m elf_i386 -T api.ls
+LD = ld --gc-sections -m elf_i386 -T os.ls
+LD_API = ld --gc-sections -m elf_i386 -T api.ls
 # nasm:
 #	-f: Select an output format.
 #	ELF32 (i386) object files (e.g. Linux)
