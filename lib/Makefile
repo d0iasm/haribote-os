@@ -1,4 +1,10 @@
-# The makefile of libraries.
+# The makefile for standard C library.
+# Include libc.h and link libc.a in order to use these functions.
+# USAGE:
+# 	#include "<path-to-lib>/libc.h"; // in C file.
+#
+# 	$ ld -o exefile <path-to-lib>/libc.a // in Shell command.
+
 AR = ar r
 DEL = rm -f
 GCC = gcc -c -m32 -fno-pic -nostdlib

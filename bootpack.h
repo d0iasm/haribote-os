@@ -235,11 +235,6 @@ void wait_KBC_sendready(void);
 void init_keyboard(struct FIFO32* fifo, int data0);
 /* -- keyboard.c end -- */
 
-/* -- libs.c start -- */
-int strcmp(const char* s1, const char* s2);
-int strncmp(const char* s1, const char* s2, const int n);
-/* -- libs.c end -- */
-
 /* -- mouse.c start -- */
 #define MOUSECMD_ENABLE 0xf4
 #define KEYCMD_SENDTO_MOUSE 0xd4
@@ -275,7 +270,7 @@ struct TASK {
   struct FIFO32 fifo;
   struct TSS32 tss;
   struct SEGMENT_DESCRIPTOR ldt[2];
-  struct CONSOLE *cons;
+  struct CONSOLE* cons;
   int ds_base, cons_stack;
 };
 
@@ -375,17 +370,6 @@ int timer_cancel(struct TIMER* timer);
 void timer_cancelall(struct FIFO32* fifo);
 void inthandler20(int* esp);
 /* -- timer.c end --*/
-
-/* -- tsprintf.c start --*/
-int tsprintf(char* str, const char* fmt, ...);
-void strcls(char* str);
-int figure(int value, int n);
-void int2char(char*, int);
-void int2hex(char*, int, int);
-void int2dec(char*, int);
-void int2str(char*, int);
-void int2float(char*, int);
-/* -- tsprintf.c end --*/
 
 /* -- window.c start --*/
 void make_window8(unsigned char* buf, int xsize, int ysize, char* title, char act);
