@@ -10,12 +10,13 @@ NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda
 
-FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o window.o
+FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o window.o
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
 
-LIBPATH = ./lib/
 APILIBPATH = ./apilib/
 APPPATH = ./app/
+FONTPATH = ./fonts/
+LIBPATH = ./lib/
 
 # Commands
 default:
@@ -58,7 +59,7 @@ nasmfunc.o: nasmfunc.asm
 	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
 bootpack.bin: $(FILES)
-	$(LD) -e hari_main -o bootpack.bin $(FILES) $(LIBPATH)libc.a
+	$(LD) -e hari_main -o bootpack.bin $(FILES) $(FONTPATH)hankaku.o $(LIBPATH)libc.a
 
 os.sys: nasmhead.bin bootpack.bin
 	cat nasmhead.bin bootpack.bin > os.sys
