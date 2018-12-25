@@ -9,8 +9,13 @@ LD_API = ld --gc-sections -m elf_i386 -T api.ls
 NASM_ELF32 = nasm -f elf32
 NASM = nasm
 QEMU = qemu-system-i386 -monitor stdio -m 32 -rtc base=localtime -vga std -fda
-FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o hankaku.o int.o keyboard.o libs.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o tsprintf.o window.o
 
+FILES = bootpack.o console.o dsctbl.o fifo.o file.o graphic.o hankaku.o int.o keyboard.o memory.o mouse.o mtask.o nasmfunc.o sheet.o timer.o window.o
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
+
+LIBPATH = ./lib/
+APILIBPATH = ./apilib/
+APPPATH = ./app/
 
 # Commands
 default:
@@ -53,7 +58,7 @@ nasmfunc.o: nasmfunc.asm
 	$(NASM_ELF32) -o nasmfunc.o nasmfunc.asm
 
 bootpack.bin: $(FILES)
-	$(LD) -e hari_main -o bootpack.bin $(FILES)
+	$(LD) -e hari_main -o bootpack.bin $(FILES) $(LIBPATH)libc.a
 
 os.sys: nasmhead.bin bootpack.bin
 	cat nasmhead.bin bootpack.bin > os.sys
@@ -68,7 +73,6 @@ os.sys: nasmhead.bin bootpack.bin
 os.img: ipl.bin os.sys
 	mformat -f 1440 -C -B ipl10.bin -i os.img ::
 	mcopy -i os.img os.sys ::
-	mcopy -i os.img hoge.txt ::
 	mcopy -i os.img Makefile ::
 	mcopy -i os.img winhello.bin ::
 	mcopy -i os.img winhel2.bin ::
