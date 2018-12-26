@@ -67,6 +67,12 @@ struct CONSOLE {
   struct TIMER* timer;
 };
 
+struct FILEHANDLE {
+  char* buf;
+  int size;
+  int pos;
+};
+
 void console_task(struct SHEET* sheet, unsigned int memtotal);
 void cons_putchar(struct CONSOLE* cons, int chr, char move);
 void cons_newline(struct CONSOLE* cons);
@@ -274,6 +280,8 @@ struct TASK {
   struct SEGMENT_DESCRIPTOR ldt[2];
   struct CONSOLE* cons;
   int ds_base, cons_stack;
+  struct FILEHANDLE* fhandle;
+  int* fat;
 };
 
 struct TASKLEVEL {
