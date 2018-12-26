@@ -375,13 +375,12 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
         q[esp + i] = p[dathrb + i];
       }
       start_app(0x1b, 0 * 8 + 4, esp, 1 * 8 + 4, &(task->tss.esp0));
-
       shtctl = (struct SHTCTL*)*((int*)0x0fe4);
       for (i = 0; i < MAX_SHEETS; i++) {
         sht = &(shtctl->sheets0[i]);
         if ((sht->flags & 0x11) == 0x11 && sht->task == task) {
           // Find the sheet that keeps an app open.
-          sheet_free(sht); // Close
+          sheet_free(sht); // Close.
         }
       }
 
@@ -391,9 +390,9 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
           task->fhandle[i].buf = 0;
         }
       }
-
       timer_cancelall(&task->fifo);
       memman_free_4k(memman, (int)q, segsiz);
+      
     } else {
       cons_putstr0(cons, "File format error.\n");
     }
