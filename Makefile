@@ -59,7 +59,9 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img $(APPPATH)walk.bin ::
 	mcopy -i os.img $(APPPATH)color.bin ::
 	mcopy -i os.img $(APPPATH)color2.bin ::
-	# mcopy -i os.img $(APPPATH)noodle.bin ::
+	mcopy -i os.img $(APPPATH)noodle.bin ::
+	mcopy -i os.img $(APPPATH)sosu.bin ::
+	mcopy -i os.img $(APPPATH)sosu2.bin ::
 
 run: os.img
 	$(QEMU) os.img
