@@ -64,6 +64,7 @@ os.img: ipl.bin os.sys
 	mcopy -i os.img $(APPPATH)sosu.bin ::
 	mcopy -i os.img $(APPPATH)sosu2.bin ::
 	mcopy -i os.img $(APPPATH)typefile.bin ::
+	mcopy -i os.img $(APPPATH)notrec.bin ::
 
 run: os.img
 	$(QEMU) os.img
