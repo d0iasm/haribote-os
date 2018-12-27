@@ -392,7 +392,7 @@ int cmd_app(struct CONSOLE* cons, int* fat, char* cmdline)
       }
       timer_cancelall(&task->fifo);
       memman_free_4k(memman, (int)q, segsiz);
-      
+
     } else {
       cons_putstr0(cons, "File format error.\n");
     }
